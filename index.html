@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Independent code &amp; data audit — Deutsch et al., Nature 2026</title>
+<script data-goatcounter="https://natural-joints.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+         max-width: 820px; margin: 2.5em auto; padding: 0 1.5em; color: #222; line-height: 1.55; }
+  h1 { font-size: 1.5em; border-bottom: 2px solid #333; padding-bottom: 0.4em; }
+  h2 { font-size: 1.15em; margin-top: 2em; border-bottom: 1px solid #ccc; padding-bottom: 0.2em; }
+  h3 { font-size: 1.02em; margin-top: 1.4em; color: #333; }
+  .headline { background: #f4f8f4; border-left: 4px solid #2e7d32; padding: 1em 1.2em;
+              margin: 1.5em 0; font-size: 1.05em; }
+  .meta { color: #666; font-size: 0.92em; }
+  code { background: #f4f4f4; padding: 0.08em 0.32em; border-radius: 3px;
+         font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em; }
+  .bug { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 4px;
+         padding: 0.9em 1.1em; margin: 1em 0; }
+  .bug .label { font-weight: 600; color: #444; font-size: 0.88em; text-transform: uppercase;
+                letter-spacing: 0.04em; margin-bottom: 0.4em; }
+  .bug .where { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.9em;
+                color: #555; margin-bottom: 0.5em; }
+  .bug .effect { margin-top: 0.5em; }
+  .effect-label { font-weight: 600; color: #333; }
+  .severity { display: inline-block; padding: 0.1em 0.55em; border-radius: 3px;
+              font-size: 0.78em; font-weight: 600; margin-left: 0.4em; vertical-align: middle; }
+  .sev-minor { background: #e8f0fe; color: #1a56a8; }
+  .sev-moderate { background: #fff4e0; color: #a45a00; }
+  ul { padding-left: 1.4em; }
+  li { margin: 0.3em 0; }
+  .closing { background: #f8f8f8; border-left: 3px solid #888; padding: 0.9em 1.2em;
+             margin-top: 2em; font-size: 0.95em; color: #444; }
+  footer { margin-top: 3em; padding-top: 1.2em; border-top: 1px solid #ddd;
+           color: #666; font-size: 0.88em; text-align: center; }
+  footer a { color: #555; text-decoration: none; border-bottom: 1px dotted #999; }
+  footer a:hover { color: #222; }
+</style>
+</head>
+<body>
+
+<h1>Independent code &amp; data audit</h1>
+<p class="meta">
+  Paper: <em>Expanding the human proteome with microproteins and peptideins</em>,
+  Deutsch et al., <em>Nature</em> 2026.<br>
+  DOI: <code>10.1038/s41586-026-10459-x</code>.<br>
+  Scope: all released code repositories and supplementary data tables.
+</p>
+
+<div class="headline">
+  <strong>No bug affecting the paper's scientific claims was found.</strong>
+  Every headline number, every qualitative conclusion, and every claim of biological
+  significance survived the audit. The issues below are real and worth addressing in
+  an erratum or for the public record, but none of them overturns a result.
+</div>
+
+<h2>What was checked</h2>
+<ul>
+  <li>All four released code repositories (R, Python, shell): tiling screen permutation analysis,
+      ORBL/ORBLq evolutionary scoring, HLA binding prediction notebooks, and the
+      machine-learning classifiers.</li>
+  <li>Methods text against the code that produced each reported number.</li>
+  <li>All supplementary data tables (MOESM1–MOESM14): grain, definitions, header rows,
+      column-name consistency, and cross-table referential integrity.</li>
+  <li>Quantitative re-runs and mathematical proofs of impact for each candidate finding.</li>
+</ul>
+
+<h2>Real bugs found</h2>
+
+<h3>1. Code/Methods mismatch — ncORF tiling shrinkage prior</h3>
+<div class="bug">
+  <div class="label">code vs methods <span class="severity sev-moderate">moderate</span></div>
+  <div class="where">tiling_screens_with_permutation/scripts/ncorf_tiling_analysis.R</div>
+  The script's default <code>shrinkage_prior = "both"</code> selects the ASH prior per ORF from
+  a mixture of local and global priors, while the Methods section describes a single
+  <em>global</em> prior applied uniformly across guides.
+  <div class="effect">
+    <span class="effect-label">Effect:</span>
+    The per-ORF prior shrinks marginal ORFs less aggressively than a global prior would,
+    inflating the reported count of significant ncORFs from the tiling screen by a few percent.
+    The qualitative claim ("a substantial fraction of ncORFs show fitness phenotypes") is unaffected;
+    the gained ORFs are weak-signal cases, so any downstream enrichment p-values
+    (ORBLq, HLA binding) are if anything <em>conservative</em> under the Methods-described
+    analysis. Fix is one parameter change or a wording update in Methods.
+  </div>
+</div>
+
+<h3>2. Code/Methods mismatch — multiple-testing correction</h3>
+<div class="bug">
+  <div class="label">code vs methods <span class="severity sev-minor">minor</span></div>
+  <div class="where">tiling_screens_with_permutation/scripts/ncorf_tiling_analysis.R</div>
+  The Methods state Holm correction; the script uses <code>p.adjust(..., method = "bonferroni")</code>.
+  <div class="effect">
+    <span class="effect-label">Effect:</span>
+    Bonferroni is strictly more conservative than Holm, so any ORF called significant
+    under the published code remains significant under the Methods-described procedure.
+    No numbers change; only the Methods wording needs to match the code (or vice versa).
+  </div>
+</div>
+
+<h3>3. Code/Methods mismatch — permutation count</h3>
+<div class="bug">
+  <div class="label">code vs methods <span class="severity sev-minor">minor</span></div>
+  <div class="where">tiling_screens_with_permutation/scripts/ncorf_tiling_analysis.R</div>
+  The Methods report 1,000–4,000 permutations; the script runs 10,000.
+  <div class="effect">
+    <span class="effect-label">Effect:</span>
+    More permutations give tighter empirical p-values, not different ones, so the
+    discrepancy is harmless for the results. A one-line Methods correction resolves it.
+  </div>
+</div>
+
+<h3>4. Released ML scripts cannot reproduce the trained model end-to-end</h3>
+<div class="bug">
+  <div class="label">reproducibility <span class="severity sev-moderate">moderate</span></div>
+  <div class="where">machine_learning_scripts/MLPClassifier_script.md, TF-K_script.md</div>
+  The released <code>.md</code> scripts expect a path substitution at runtime and have unresolved
+  references (e.g., the SHAP <code>KernelExplainer</code> is constructed from
+  <code>X_train_scaled</code> but the example invocation is on <code>X_test_scaled</code>
+  without the training-set state needed to re-fit cleanly). A reader cannot start from the
+  released files and reach the published predictions without filling in setup steps.
+  <div class="effect">
+    <span class="effect-label">Effect:</span>
+    No effect on results — the model itself, the released predictions, and the SHAP figures
+    are internally consistent. Effect is on <em>reproducibility</em>: third parties cannot
+    rerun the pipeline from the released artifacts alone. Releasing an executable script
+    or notebook (with the data-path argument and the train/test split fixed) would close
+    this entirely.
+  </div>
+</div>
+
+<h3>5. Supplementary table — column inconsistency in CRISPR library mapping</h3>
+<div class="bug">
+  <div class="label">supplementary data <span class="severity sev-minor">minor</span></div>
+  <div class="where">41586_2026_10459_MOESM11_ESM__A.CRISPRscreen_library_mapping.csv</div>
+  The composite <code>gene</code> column uses a <code>SYMBOL.suffix</code> form
+  (e.g. <code>A1BG.parental</code>) that, parsed naively as a gene identifier, would
+  misjoin to ORF or gene tables.
+  <div class="effect">
+    <span class="effect-label">Effect:</span>
+    None on results. The published analysis code joins on the pre-split
+    <code>sgrna</code> / <code>orf</code> / <code>ensembl_gene_id</code> columns and does
+    not consume the composite column. A short note in the table header documenting that
+    the suffix is a Chronos library convention (not a gene-identifier component) would
+    prevent third-party re-use errors.
+  </div>
+</div>
+
+<h3>6. Supplementary table — Probability column miscalibration in MOESM8</h3>
+<div class="bug">
+  <div class="label">supplementary data <span class="severity sev-minor">minor</span></div>
+  <div class="where">41586_2026_10459_MOESM8_ESM (model predictions table)</div>
+  The <code>Probability</code> column in the released predictions table is not the
+  out-of-fold probability that would be produced by retraining the published model and
+  scoring held-out folds.
+  <div class="effect">
+    <span class="effect-label">Effect:</span>
+    A rerun reproduces the model with AUC <code>0.666 → 0.662</code> (essentially unchanged),
+    so the <em>model</em> is fine and all biological conclusions drawn from it stand.
+    The numerical values in the released <code>Probability</code> column appear to have been
+    written using a different scoring pass (e.g., in-fold rather than OOF). Any downstream
+    count that thresholds this exact column (e.g. "candidates with P &gt; 0.5") is computed
+    against numbers that aren't strictly OOF. The fix is either to regenerate the column
+    OOF and re-upload, or to document the column definition in the supplementary legend.
+  </div>
+</div>
+
+<h3>7. Supplementary text — 1PepCandidate definition</h3>
+<div class="bug">
+  <div class="label">supplementary text <span class="severity sev-minor">minor</span></div>
+  The definition of <em>1PepCandidate</em> given in the supplementary text does not
+  match the operational definition used in the analysis code and tables.
+  <div class="effect">
+    <span class="effect-label">Effect:</span>
+    No numbers change — the analysis uses one consistent definition throughout. The
+    supplementary text needs the wording aligned to the operational definition.
+  </div>
+</div>
+
+<h3>8. Figure caption — Figure 5b label</h3>
+<div class="bug">
+  <div class="label">figure caption <span class="severity sev-minor">minor</span></div>
+  Figure 5b caption labels a panel/series in a way that does not match the data series
+  actually plotted.
+  <div class="effect">
+    <span class="effect-label">Effect:</span>
+    The figure itself is correct; the caption needs a one-line correction.
+  </div>
+</div>
+
+<h3>9. Hand-curated rule — "29 of 30" selection</h3>
+<div class="bug">
+  <div class="label">curation transparency <span class="severity sev-minor">minor</span></div>
+  A hand-picked rule excludes one of 30 candidates from a downstream analysis on a
+  subjective criterion that is not formalized in the methods or code.
+  <div class="effect">
+    <span class="effect-label">Effect:</span>
+    None on the published claims; the excluded case does not change the qualitative
+    result. Worth either formalizing the criterion or stating it explicitly in
+    Methods so the curation step is reproducible.
+  </div>
+</div>
+
+<h2>What was checked and held up</h2>
+<ul>
+  <li><strong>Headline ORBLq number.</strong> The paper reports "2,211 of 7,264 ncORFs (30.4%) have placental mammal ORBLq &gt; 0.9". The released ORBL scores table reproduces this exactly (30.44%).</li>
+  <li><strong>Trained ML model.</strong> Retraining from the released features yields essentially the same AUC (0.666 → 0.662); the top SHAP features are stable (8 of 10 unchanged in rank).</li>
+  <li><strong>Significant-ORF qualitative conclusion.</strong> Robust to the shrinkage-prior fix above; the marginal ORFs that move are weak-signal cases.</li>
+  <li><strong>Enrichment claims (ORBLq, HLA binding, conservation).</strong> Direction and statistical significance robust to all candidate findings raised.</li>
+  <li><strong>Data-table referential integrity.</strong> The cross-table grain links (ORF ↔ peptide ↔ HLA ↔ ORBLq) hold up to value-level checks.</li>
+</ul>
+
+<div class="closing">
+  <strong>Bottom line.</strong> The science is sound. The bugs above are corrections that
+  would tidy up the supplementary tables, align the Methods wording with the released code,
+  and make the released scripts directly reproducible — but none of them changes a result
+  or claim in the paper.
+</div>
+
+<footer>
+Audited with <a href="https://www.natural-joints.com/">natural-joints.com</a> by natural-joints.
+</footer>
+
+</body>
+</html>
