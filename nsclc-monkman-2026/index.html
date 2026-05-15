@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Audit Report — Monkman et al., Nat Commun 2026 (NSCLC Metabolic mIF)</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 1180px; margin: 2em auto; padding: 0 1em; color: #1f1f1f; line-height: 1.45; }
+  h1 { border-bottom: 2px solid #003366; padding-bottom: 0.3em; }
+  h2 { color: #003366; margin-top: 1.8em; border-bottom: 1px solid #ccc; padding-bottom: 0.2em; }
+  h3 { color: #444; margin-top: 1.4em; }
+  table { border-collapse: collapse; margin: 0.9em 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #aaa; padding: 5px 9px; text-align: left; vertical-align: top; }
+  th { background: #eef; }
+  code, pre { font-family: "SF Mono", Menlo, monospace; background: #f4f4f4; padding: 1px 4px; border-radius: 3px; font-size: 0.91em; }
+  pre { padding: 0.6em; overflow-x: auto; }
+  .tag { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 0.78em; font-weight: 600; }
+  .tag-BLIND { background: #d4e7ff; color: #003c8a; }
+  .tag-ENRICHED { background: #ffe1d4; color: #8a3a00; }
+  .tag-BOTH { background: #d4f7d4; color: #1f5f1f; }
+  .tag-CORRECTED { background: #fff3a6; color: #6e5400; }
+  .sev { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.78em; font-weight: 600; color: white; }
+  .sev-BLOCKER { background: #b30000; }
+  .sev-CRITICAL { background: #cc0033; }
+  .sev-HIGH { background: #d97706; }
+  .sev-MAJOR { background: #d97706; }
+  .sev-MEDIUM { background: #b58a00; }
+  .sev-LOW { background: #4a7a4a; }
+  .sev-MINOR { background: #4a7a4a; }
+  .sev-TRIVIAL { background: #888; }
+  .sev-NEGLIGIBLE { background: #888; }
+  .verdict-VERIFIED { color: #1f5f1f; font-weight: 600; }
+  .verdict-PARTIAL { color: #8a3a00; font-weight: 600; }
+  .verdict-REFUTED { color: #b30000; font-weight: 600; }
+  .verdict-CANNOTVERIFY { color: #555; font-weight: 600; }
+  .novel-NOVEL { color: #003c8a; font-weight: 600; }
+  .novel-KNOWN { color: #888; }
+  .finding { border-left: 4px solid #ccc; padding: 0.5em 0.9em; margin: 0.7em 0; background: #fafafa; }
+  .finding.blocker { border-left-color: #b30000; }
+  .finding.critical { border-left-color: #cc0033; }
+  .finding.high, .finding.major { border-left-color: #d97706; }
+  .finding-id { font-weight: 700; color: #003366; }
+  .meta-row { font-size: 0.88em; color: #555; margin-top: 0.4em; }
+  .meta-row span + span { margin-left: 1em; }
+  .keytakeaway { background: #fff3a6; border: 1px solid #cc9; padding: 0.7em 1em; border-radius: 4px; margin: 0.9em 0; }
+  ul.compact li { margin: 0.15em 0; }
+  .toc { background: #f0f4f8; border: 1px solid #c0d0e0; padding: 0.8em 1.2em; border-radius: 4px; }
+  .toc a { color: #003366; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<h1>Audit Report — Monkman <em>et al.</em>, <em>Nat Commun</em> 2026 (NSCLC Metabolic mIF)</h1>
+
+<p><strong>Paper:</strong> Monkman J, Kilgallon A, Lawler C, <em>et al.</em> "Metabolic characterization of tumor-immune interactions by multiplexed immunofluorescence reveals spatial mechanisms of immunotherapy response in NSCLC." <em>Nat Commun</em> 17, 837 (2026).<br>
+<strong>DOI:</strong> 10.1038/s41467-026-68633-8 · <strong>PMID:</strong> 41634004 · <strong>PMCID:</strong> PMC12868679<br>
+<strong>GitHub:</strong> <code>clinicalomx/metabolic-microenvironment-predictors-of-nsclc-immunotherapy-response</code><br>
+<strong>Dataset DOI:</strong> 10.48610/73b218c (UQ eSpace) — raw images + AnnData, not in repo<br>
+<strong>Audit date:</strong> 2026-05-15<br>
+<strong>Audit team:</strong> 9 agents — 3 blind (code/honesty/facts) + 3 enriched (code/honesty/facts) + 3 summary (verifier/novelty/impact)
+</p>
+
+<div class="toc">
+<strong>Contents</strong>
+<ul class="compact">
+<li><a href="#takeaways">Key takeaways</a></li>
+<li><a href="#summary">Summary table</a></li>
+<li><a href="#findings-A">A. Data availability &amp; cohort honesty (8)</a></li>
+<li><a href="#findings-B">B. Code bugs — result-changing (16)</a></li>
+<li><a href="#findings-C">C. Code bugs — latent (5)</a></li>
+<li><a href="#findings-D">D. Data integrity / parse artifacts (5)</a></li>
+<li><a href="#findings-E">E. Enrichment-layer known-issue verdicts (3)</a></li>
+<li><a href="#enrichment-value">Enrichment value</a></li>
+<li><a href="#empirical">Empirical verification on analytic data</a></li>
+<li><a href="#compounds">Compound effects</a></li>
+</ul>
+</div>
+
+<h2 id="takeaways">Key takeaways</h2>
+<div class="keytakeaway">
+<ul>
+<li><strong>37 unique findings; all 37 NOVEL</strong> — no GitHub issues, no Nature errata, no PubPeer thread, no Retraction Watch entry. Paper has been public 3 months.</li>
+<li><strong>34/37 VERIFIED outright; 2 PARTIALLY VERIFIED</strong> (F-B6 impact narrower than feared; F-D3 CD68 space is trailing not leading); <strong>1 REVISED</strong> after empirical verification on the analytic data (F-B12 — bug genuine but latent in this cohort). Six findings — F-B2, F-B3, F-B4, F-B6, F-B9, F-B12 — were re-run against the actual h5ad / CSV / code; see the <a href="#empirical">Empirical verification</a> section.</li>
+<li><strong>4 BLOCKER code bugs, 1 CRITICAL publication-data error</strong>: F-A2 N=801/N=861 typo (off by 10× from CSV percentages); F-B1 SCLC→Squamous; F-B2 IDH2/SDHA/HEX1/NAKATPASE → empty pathway bucket; F-B9 censored landmark survival → 0 (<strong>empirically confirmed: +18.6 pp optimistic bias on OS-24mo rate, 14/55 patients censored before landmark</strong>).</li>
+<li><strong>F-B12 (K=3 CN labels): REVISED.</strong> The function <code>relabelUsingTumourFractions</code> is genuinely buggy — it inverts the cluster→rank mapping. Enumerating all 6 KMeans→tumor-fraction permutations: <strong>2/6 (cyclic) produce wrong labels; 4/6 are no-ops.</strong> In this dataset's saved CSV, labels happen to be directionally correct (Tumour cluster has highest tumor-tumor intensity 183.27; Stroma has highest fibro-fibro intensity 29.98). The bug is real and reproducibility-fragile (F-C2 missing <code>random_state</code> compounds it), but the published Figs 4/7 are NOT mislabeled at the cell-type level.</li>
+<li><strong>F-A6 — paper Methods text inverts CD45 polarity</strong> on macrophages / endothelial / fibroblast / myofibroblast definitions. The analysis is correct (rules CSV is right); the publication prose is biologically wrong.</li>
+<li><strong>F-B5 downgraded from BLOCKER to NEGLIGIBLE</strong> — the buggy <code>mannwhit</code> function is only invoked in an exploratory cell with no saved output; the substantive Mann-Whitney uses a separate correct function.</li>
+<li><strong>Enrichment contribution: high.</strong> 7 ENRICHED-only findings (mostly in <code>univariate.py</code> + cross-file pathway disagreement) + 1 CORRECTED (the "15 vs 14 cell types" framing).</li>
+<li><strong>F-A1 — the published <code>dataset/</code> ships 4 reference/summary CSVs</strong>, not the analytic data. The pipeline reads <code>yale_*.csv</code> + AnnData behind the DOI; the repo README does not say so.</li>
+</ul>
+</div>
+
+<h2 id="summary">Summary table — all 37 findings</h2>
+
+<table>
+<thead><tr>
+  <th>#</th><th>Finding</th><th>Tag</th><th>Severity</th><th>Verified</th><th>Novel</th><th>Impact</th>
+</tr></thead>
+<tbody>
+
+<tr><td>F-A1</td><td><code>dataset/</code> ships reference/summary tables, not analytic data</td><td><span class="tag tag-BOTH">BOTH</span></td><td><span class="sev sev-HIGH">HIGH</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MODERATE (reproducibility blocker)</td></tr>
+
+<tr><td>F-A2</td><td><code>clinical_summary_by_sex.csv</code> header N=801 / N=861 (should be 80 / 86)</td><td><span class="tag tag-BOTH">BOTH</span></td><td><span class="sev sev-CRITICAL">CRITICAL</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MAJOR (publication data error, 10×)</td></tr>
+
+<tr><td>F-A3</td><td>Sex-stratified CSV summarizes 166 pts; paper analytic cohort is 55</td><td><span class="tag tag-BOTH">BOTH</span></td><td><span class="sev sev-HIGH">HIGH</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MAJOR (readers may mistake CSV p=0.027 as a finding)</td></tr>
+
+<tr><td>F-A4</td><td>Panel CSV: 34 antibodies vs paper's 44-plex; ~10 undisclosed</td><td><span class="tag tag-BOTH">BOTH</span></td><td><span class="sev sev-HIGH">HIGH</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MODERATE (includes SDHA/IDH2/HEX1/LDHA)</td></tr>
+
+<tr><td>F-A5</td><td>Cohorts 496 and 523 dropped silently</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MEDIUM">MEDIUM</span></td><td class="verdict-VERIFIED">VERIFIED*</td><td class="novel-NOVEL">NOVEL</td><td>MINOR (selection-bias surface)</td></tr>
+
+<tr><td>F-A6</td><td>Paper Methods inverts CD45 polarity for non-immune cell types</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-HIGH">HIGH</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MAJOR (publication error; figures intact, prose wrong)</td></tr>
+
+<tr><td>F-A7</td><td>"14 mutually exclusive cell types" — "Other cells" undefined in paper</td><td><span class="tag tag-CORRECTED">CORRECTED</span></td><td><span class="sev sev-LOW">LOW</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE (disclosure)</td></tr>
+
+<tr><td>F-A8</td><td>KNN-backfill rate of cell typing not disclosed</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MEDIUM">MEDIUM</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MINOR (transparency)</td></tr>
+
+<tr><td>F-B1</td><td>SCLC silently relabeled as Squamous, kept as NSCLC</td><td><span class="tag tag-BOTH">BOTH</span></td><td><span class="sev sev-BLOCKER">BLOCKER</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MODERATE (≤4/17 = 24% contamination of Squamous arm)</td></tr>
+
+<tr><td>F-B2</td><td><code>pathways</code> dict routes IDH2/SDHA/HEX1/NAKATPASE to empty-string key → markers stripped from <code>cell_types_immune_metapath</code></td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-BLOCKER">BLOCKER</span></td><td class="verdict-VERIFIED">VERIFIED+ (empirical)</td><td class="novel-NOVEL">NOVEL</td><td>MAJOR — empirically confirmed: 4 markers appear in 13–37 of 54 pre-strip tumour-meta cell profiles (24–68%) but in 0/212 post-strip cell_types_immune_metapath profiles. MetaPathNeighbourhood + all Funcmetapath features (Figs 4/7) built on strings lacking these 4 markers.</td></tr>
+
+<tr><td>F-B3</td><td>Pathway markerdict has duplicate keys; Python silently keeps last</td><td><span class="tag tag-ENRICHED">ENRICHED</span></td><td><span class="sev sev-MAJOR">MAJOR</span></td><td class="verdict-VERIFIED">VERIFIED+ (empirical)</td><td class="novel-NOVEL">NOVEL</td><td>MODERATE — empirically re-executed: 11 dict literal entries collapse to 6 keys; ATPA5, NAKATPASE, CITRATESYNTHASE, HEXOKINASE1, G6PD silently dropped from Fig 4 marker-vs-MetaPathNeighbourhood matrixplot (cell 11). Cell 13 marked <code># FIX THIS</code> still drops NAKATPASE/SDHA/IDH2/HEXOKINASE1.</td></tr>
+
+<tr><td>F-B4</td><td>Three pathway definitions disagree cross-file; the only correct one is dead code</td><td><span class="tag tag-ENRICHED">ENRICHED</span></td><td><span class="sev sev-MAJOR">MAJOR</span></td><td class="verdict-VERIFIED">VERIFIED+ (empirical)</td><td class="novel-NOVEL">NOVEL</td><td>MODERATE — empirically confirmed: 3 disagreeing dicts (notebook 2 cell 36, notebook 3 cell 11/13, <code>ReadClinicalData.py:138-141</code>). Grep confirms the only complete/correct pathway routing (<code>combineMetaAndImmuneAndRefactorPathways</code>) is dead code — sole call site (line 166) is commented out, zero invocations repo-wide.</td></tr>
+
+<tr><td>F-B5</td><td>Mann-Whitney "above-median" group uses <code>== median</code> (not <code>&gt; median</code>)</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-NEGLIGIBLE">↓ NEGLIGIBLE</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE (dead function — only used in an exploratory print)</td></tr>
+
+<tr><td>F-B6</td><td>"Median split" actually splits by mean</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MAJOR">MAJOR</span></td><td class="verdict-PARTIAL">PARTIAL (empirical)</td><td class="novel-NOVEL">NOVEL</td><td>MINOR-MODERATE (1% of features cross p=0.05 on real data; cosmetic shifts only)</td></tr>
+
+<tr><td>F-B7</td><td>CoxPH train/test = <code>iloc[:50]</code> / <code>iloc[50:]</code> = cohort split, not random</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MAJOR">MAJOR</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MODERATE (held-out C-index measures cross-cohort, not internal)</td></tr>
+
+<tr><td>F-B8</td><td>Hardcoded <code>allSelectedFeatures</code> overrides STABL output</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MAJOR">MAJOR</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MODERATE (kills STABL reproducibility; cell 112 even comments so)</td></tr>
+
+<tr><td>F-B9</td><td>Censored OS/PFS landmark vars overwritten with 0 via fillna</td><td><span class="tag tag-ENRICHED">ENRICHED</span></td><td><span class="sev sev-BLOCKER">BLOCKER</span></td><td class="verdict-VERIFIED">VERIFIED+ (empirical)</td><td class="novel-NOVEL">NOVEL</td><td>MAJOR (+18.6 pp inflation on OS-24mo rate, 14/55 censored before landmark)</td></tr>
+
+<tr><td>F-B10</td><td>Stale <code>est_cph_tree</code> (CB6-fitted) scores OS; also PFS-indexed split for OS labels</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MAJOR">MAJOR</span></td><td class="verdict-VERIFIED">VERIFIED+</td><td class="novel-NOVEL">NOVEL</td><td>MAJOR (OS C-index/HR for tree branch wrong; verifier found bonus bug)</td></tr>
+
+<tr><td>F-B11</td><td>K=3 CN view uses knn=20 vs paper Methods' N=30</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MAJOR">MAJOR</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MINOR (K=2 view's knn=50 matches paper; only K=3 wrong)</td></tr>
+
+<tr><td>F-B12</td><td>relabelUsingTumourFractions inverts cluster→rank mapping</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MEDIUM">MEDIUM (revised)</span></td><td class="verdict-PARTIAL">REVISED (empirical)</td><td class="novel-NOVEL">NOVEL</td><td>MEDIUM (latent: 2/6 KMeans permutations buggy; this cohort landed in safe 4/6; labels directionally correct in saved CSV)</td></tr>
+
+<tr><td>F-B13</td><td>Nuclear + membrane channels averaged per marker before high/low call</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MAJOR">MAJOR</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MODERATE (biologically distinct localizations diluted)</td></tr>
+
+<tr><td>F-B14</td><td>NaN→0 / JSD-NaN→1 imputation injects deterministic extremes into STABL</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MAJOR">MAJOR</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MODERATE</td></tr>
+
+<tr><td>F-B15</td><td>logFC sign polarity depends on <code>.unique()</code> first-appearance order</td><td><span class="tag tag-ENRICHED">ENRICHED</span></td><td><span class="sev sev-MEDIUM">MEDIUM</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MINOR (silent sign-flip risk)</td></tr>
+
+<tr><td>F-B16</td><td>Hardcoded patient-ID dedup in <code>univariate.py</code></td><td><span class="tag tag-ENRICHED">ENRICHED</span></td><td><span class="sev sev-MINOR">MINOR</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MINOR (fragile, not currently wrong)</td></tr>
+
+<tr><td>F-C1</td><td><code>.values.isna()</code> AttributeError (only reached if stratifier param != "CB6")</td><td><span class="tag tag-ENRICHED">ENRICHED</span></td><td><span class="sev sev-LOW">LOW</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE</td></tr>
+
+<tr><td>F-C2</td><td>KMeans without random_state (CN/MBN cluster IDs non-deterministic)</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MEDIUM">MEDIUM</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MINOR (compounds F-B12)</td></tr>
+
+<tr><td>F-C3</td><td><code>nolan._get_necessary_data</code> parameter swap (inert)</td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MINOR">MINOR</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE</td></tr>
+
+<tr><td>F-C4</td><td><code>relabelUsingTumourFractions</code> would crash if <code>sortByPhenotype=None</code></td><td><span class="tag tag-BLIND">BLIND</span></td><td><span class="sev sev-MINOR">MINOR</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE</td></tr>
+
+<tr><td>F-C5</td><td><code>.applymap</code> deprecated in pandas ≥ 2.1</td><td><span class="tag tag-ENRICHED">ENRICHED</span></td><td><span class="sev sev-TRIVIAL">TRIVIAL</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE</td></tr>
+
+<tr><td>F-D1</td><td>195/858 rows have legend strings in <code>cell_type</code> column</td><td><span class="tag tag-BOTH">BOTH</span></td><td><span class="sev sev-MEDIUM">MEDIUM</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MINOR (only impacts external consumers)</td></tr>
+
+<tr><td>F-D2</td><td>rules.marker_name ↔ panel.Antibody not joinable; 4 unmapped</td><td><span class="tag tag-BOTH">BOTH</span></td><td><span class="sev sev-MEDIUM">MEDIUM</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>MINOR</td></tr>
+
+<tr><td>F-D3</td><td>Panel CSV: "TCA Cyle" typo; GLUT1 <code>B025</code> barcode; CD68 trailing space</td><td><span class="tag tag-BOTH">BOTH</span></td><td><span class="sev sev-LOW">LOW</span></td><td class="verdict-PARTIAL">PARTIAL (space is trailing not leading)</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE</td></tr>
+
+<tr><td>F-D4</td><td>clinical_summary_by_sex polymorphic cell content</td><td><span class="tag tag-BOTH">BOTH</span></td><td><span class="sev sev-LOW">LOW</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE (presentation table)</td></tr>
+
+<tr><td>F-D5</td><td><code>study_publication.csv</code> has 1 row, not 2 (brief correction)</td><td><span class="tag tag-BOTH">BOTH</span></td><td><span class="sev sev-TRIVIAL">TRIVIAL</span></td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE</td></tr>
+
+<tr><td>F-E1</td><td><code>rule_value</code> typed <code>measurement</code>; actually 5 discrete codes</td><td><span class="tag tag-ENRICHED">ENRICHED</span></td><td>verdict-only</td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE (code correct in this repo; verdict only)</td></tr>
+
+<tr><td>F-E2</td><td><code>Female</code> typed classifier vs <code>Male</code> typed quantity</td><td><span class="tag tag-ENRICHED">ENRICHED</span></td><td>verdict-only</td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE (not consumed by code)</td></tr>
+
+<tr><td>F-E3</td><td>Parse artifacts in <code>cell_type</code> column (= F-D1)</td><td><span class="tag tag-ENRICHED">ENRICHED</span></td><td>verdict-only</td><td class="verdict-VERIFIED">VERIFIED</td><td class="novel-NOVEL">NOVEL</td><td>NEGLIGIBLE</td></tr>
+
+</tbody>
+</table>
+
+<p style="font-size: 0.85em; color: #666;">VERIFIED* = filter line confirmed; cannot enumerate other cohort values without the missing <code>yale_clinical_data.csv</code> (which is itself F-A1).</p>
+
+<h2 id="findings-A">A. Data availability &amp; cohort honesty (8 findings)</h2>
+
+<div class="finding"><span class="finding-id">F-A1</span> <span class="tag tag-BOTH">BOTH</span> <span class="sev sev-HIGH">HIGH</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong><code>dataset/</code> ships reference/summary tables, not analytic data.</strong> Code reads <code>clinicalData/yale_clinical_data.csv</code>, <code>yale_results_predictions.csv</code>, <code>yale_results_probabilities.csv</code>, <code>yale_nsclc_quantification_tables_6_6_2024_filtered.csv</code>, <code>yale nsclc patient features v05 filtered.csv</code>, <code>yale nsclc patient neighbor features v05 filtered.csv</code> — none in this repo. Paper's "Data availability": raw image + AnnData at DOI 10.48610/73b218c. The 4 published CSVs are reference (panel, rules, Table-1, bibliography). README does not say "code-only / data at DOI."</p>
+<div class="meta-row"><span>Impact: MODERATE (reproducibility blocker; readers cloning repo cannot run anything).</span></div>
+</div>
+
+<div class="finding critical"><span class="finding-id">F-A2</span> <span class="tag tag-BOTH">BOTH</span> <span class="sev sev-CRITICAL">CRITICAL</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong><code>clinical_summary_by_sex.csv</code> header N=801 / N=861 should be N=80 / N=86.</strong> Verifier reproduced the math exactly: histology sums 56+14+2+3+2+3=80 F, 56+22+1+1+2+4=86 M. Percentages back-solve cleanly: Female <code>8/80=10%</code>, <code>43/80=53.75%≈54%</code>; Male <code>12/86=13.95%≈14%</code>, <code>55/86=63.95%≈64%</code>. Headers carry a stray trailing <code>1</code> → printed N is off by exactly 10×; total cohort is 166, the CSV prints 1662.</p>
+<div class="meta-row"><span>Fix: change two cells.</span> <span>Impact: MAJOR (publication data error).</span></div>
+</div>
+
+<div class="finding"><span class="finding-id">F-A3</span> <span class="tag tag-BOTH">BOTH</span> <span class="sev sev-HIGH">HIGH</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Sex-stratified CSV summarizes 166 patients; paper analytic cohort is 55 (or 82 annotated).</strong> CSV totals: 80F + 86M = 166. Histology: 112 Adeno / 36 SqCC / 4 LCC / 4 SCLC / 3 AdSq / 7 NS vs paper 36/17/0/0/2/0 for the analytic n=55. CSV is the pre-refinement TMA pool. The CSV's nominally-significant p=0.027 for "RECIST-prior-to-ICI" is on the 166-pool, not the analytic cohort, and could be mistaken for a paper finding.</p>
+<div class="meta-row"><span>Impact: MAJOR.</span></div>
+</div>
+
+<div class="finding"><span class="finding-id">F-A4</span> <span class="tag tag-BOTH">BOTH</span> <span class="sev sev-HIGH">HIGH</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Panel CSV has 34 antibodies; paper claims 44-plex; ~10 antibodies undisclosed.</strong> Confirmed absent from <code>akoya_antibody_panel.csv</code> but used by code/figures: <code>sdha</code>, <code>idh2</code>, <code>hexokinase1</code>, <code>nakatpase</code>, <code>ldha</code>, <code>cd163</code>, <code>cd57</code>, <code>cd11c</code>, <code>cd19</code>, <code>pax5</code>. SDHA / IDH2 / HEX1 / Na-K-ATPase are the headline metabolic markers in Figs 4 / 7; CD163 / CD19 / CD57 / CD11c / Pax5 are key immune-lineage markers.</p>
+<div class="meta-row"><span>Impact: MODERATE.</span></div>
+</div>
+
+<div class="finding"><span class="finding-id">F-A5</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-MEDIUM">MEDIUM</span> · <span class="verdict-VERIFIED">VERIFIED*</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Cohorts 496 and 523 dropped without disclosure.</strong> Notebook 1 cell 7: <code>cohort.isin([404, 471])</code>. Paper acknowledges only 404 and 471. Cannot enumerate which other cohorts existed (yale CSV not in repo — itself F-A1).</p>
+<div class="meta-row"><span>Impact: MINOR (selection-bias surface).</span></div>
+</div>
+
+<div class="finding high"><span class="finding-id">F-A6</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-HIGH">HIGH</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Paper Methods text inverts CD45 polarity for non-immune cell types.</strong> Methods page 13 ("Cellular and functional classification") reads <code>CD45⁻CD14⁻CD68⁺</code> (macrophages — should be CD45⁺), <code>CD45⁻vimentin⁺</code> (fibroblasts — should be CD45⁻ … actually CD45⁻ is correct for fibroblasts, but paper says CD45+vimentin+ in some places), <code>CD45⁻SMA⁺</code> (myofibroblasts — paper says CD45+SMA+ in other places). Verifier confirms the rules CSV has <code>cd45=2</code> (positive) for macrophages and <code>cd45=0</code> (negative) for fibroblasts/myofibroblasts. The analysis code uses the correct CSV; the publication prose is biologically inconsistent.</p>
+<div class="meta-row"><span>Impact: MAJOR (publication error; figures intact, prose wrong).</span></div>
+</div>
+
+<div class="finding"><span class="finding-id">F-A7</span> <span class="tag tag-CORRECTED">CORRECTED</span> <span class="sev sev-LOW">LOW</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>"14 mutually exclusive cell types" claim.</strong> Blind initially flagged 15-vs-14. Enriched corrected: 14 mutually exclusive + 1 artifact = 15, matches paper. Residual gap: paper text never defines "Other cells" (5,636 cells, ~3% in AnnData), which is one of the 14.</p>
+<div class="meta-row"><span>Impact: NEGLIGIBLE (disclosure).</span></div>
+</div>
+
+<div class="finding"><span class="finding-id">F-A8</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-MEDIUM">MEDIUM</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>KNN-backfill rate of cell typing not disclosed.</strong> Paper says cells not matching a rule are assigned by 5-NN. No fraction reported for rule-matched vs imputed per cell type. Soft p-hacking surface.</p>
+<div class="meta-row"><span>Impact: MINOR (transparency).</span></div>
+</div>
+
+<h2 id="findings-B">B. Code bugs — result-changing (16 findings)</h2>
+
+<div class="finding blocker"><span class="finding-id">F-B1</span> <span class="tag tag-BOTH">BOTH</span> <span class="sev sev-BLOCKER">BLOCKER</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>SCLC silently relabeled as Squamous, kept as NSCLC.</strong> <code>multivariate_analysis/1-FilterClinicalDataAndMeasurements.ipynb</code> cell 26: <code>rmap = {'histologytype': {... 'SCLC':'Squamous', 'Squamous':'Squamous'}}</code>, then <code>nsclcadata.obs.histologytype.isin(['Adenocarcinoma','Adenosquamous','Squamous'])</code>. SCLC passes the filter labeled as Squamous. CSV shows 4 SCLC patients in the upstream pool → ≤4/17 = 24% contamination of any Squamous-arm finding.</p>
+<div class="meta-row"><span>Fix: <code>'SCLC':'SCLC'</code> (or drop the entry).</span> <span>Impact: MODERATE.</span></div>
+</div>
+
+<div class="finding blocker"><span class="finding-id">F-B2</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-BLOCKER">BLOCKER</span> · <span class="verdict-VERIFIED">VERIFIED+ (empirical)</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong><code>pathways</code> dict routes IDH2 / SDHA / HEXOKINASE1 / NAKATPASE to empty-string key — the markers are STRIPPED from the cell-type string entirely.</strong> <code>notebooks/2-GenerateCellularNeighbourhoods.ipynb</code> cell 36:
+<code>'': ['IDH2high','IDH2','HEXOKINASE1high','HEXOKINASE1','SDHAhigh','SDHA','NAKATPASEhigh','NAKATPASE']</code>. Cell 37 then applies <code>x.replace(marker, path)</code> per (path, markers) pair — so markers under <code>''</code> get replaced with empty string, deleting them from <code>cell_types_immune_metapath</code> before that column feeds MetaPathNeighbourhood clustering and every <code>*Funcmetapath*</code> feature in Figs 4 / 7b.</p>
+<p><strong>Empirical verification on <code>4-patientAnnData_NSCLC_merged.h5ad</code>:</strong></p>
+<ul>
+<li><strong>Pre-strip</strong> (<code>uns['tumour_meta']</code>, 54 cell-level metabolic phenotype strings): IDH2 appears in <strong>37/54</strong> (68%), NAKATPASE in <strong>37/54</strong> (68%), SDHA in <strong>28/54</strong> (52%), HEXOKINASE1 in <strong>13/54</strong> (24%). These are massively present in the raw tumour metabolic phenotypes.</li>
+<li><strong>Post-strip</strong> (<code>uns['cell_types_immune_metapath']</code>, 212 cell-type strings — the column used for MetaPathNeighbourhood KMeans clustering): IDH2, HEXOKINASE1, SDHA, NAKATPASE each appear in <strong>0/212</strong>. All four are fully deleted. Kept markers (ATPA5, CITRATESYNTHASE, GLUT1, ASCT2, CPT1A, G6PD, PNRF2) are also absent — they were replaced with their pathway names (<code>ATPSynthesis</code>, <code>TCACyle</code>, <code>Glycolysis</code>, etc.), which DO appear in the post-strip strings.</li>
+<li>Every <code>obsm</code> feature whose axis is <code>cell_types_immune_metapath</code> — i.e. all <code>GCross_*Funcmetapath*Funcmetapath*</code> and <code>JSDScores_*Funcmetapath*Funcmetapath*</code> tensors that drive Figs 4 / 7b — was built on cell-type strings that omit these 4 markers entirely. Each of these dim arrays returned 0 hits for IDH2/HEX1/SDHA/NAKAT (confirmed by full obsm-dims scan).</li>
+<li>Markers ARE preserved in parallel <code>tumour_meta</code> and <code>Immune_meta</code> axes (which still list IDH2high, SDHAhigh, etc.). So features under those axes carry the signal — but the headline metabolic-pathway-neighbourhood story uses the Funcmetapath axis, which is silently missing the 4 OXPHOS/TCA/glycolysis markers.</li>
+</ul>
+<div class="meta-row"><span>Impact: MAJOR — confirmed silent deletion of the 4 OXPHOS/TCA headline markers from MetaPathNeighbourhood input and from every Funcmetapath feature tensor. The "metabolic neighbourhood" construct the paper hangs Figs 4 / 7b on is built on a sub-panel missing exactly the markers the figure narratives discuss.</span></div>
+</div>
+
+<div class="finding major"><span class="finding-id">F-B3</span> <span class="tag tag-ENRICHED">ENRICHED</span> <span class="sev sev-MAJOR">MAJOR</span> · <span class="verdict-VERIFIED">VERIFIED+ (empirical)</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Pathway markerdict has duplicate keys; Python silently keeps last.</strong> <code>code/multivariate_analysis/3-UnderstandMetabolicNBs.ipynb</code> cell 11 literally writes 11 entries, but <code>'ATPSynthesis'</code> appears 3×, <code>'TCACyle'</code> 2×, <code>'Glycolysis'</code> 3×. After Python last-write-wins:</p>
+<pre>{ 'AminoAcidUptake': 'asct2',
+  'ATPSynthesis':    'sdha',          # atpa5, nakatpase silently dropped
+  'TCACyle':         'idh2',          # citratesynthase silently dropped
+  'FatOxidation':    'cpt1a',
+  'Glycolysis':      'glut1',         # hexokinase1, g6pd silently dropped
+  'OxidativeStressRegulatory': 'pnrf2' }</pre>
+<p>The dict is consumed by <code>sc.pl.matrixplot(... markerdict, groupby='MetaPathNeighbourhood' ...)</code> and saved as the Fig 4 marker × neighbourhood matrixplot. <strong>5 of the 11 listed markers</strong> — ATPA5, NAKATPASE, CITRATESYNTHASE, HEXOKINASE1, G6PD — never reach the plot.</p>
+<p><strong>Cell 13 is the author's attempted fix.</strong> It is prefaced <code># FIX THIS</code> and rewrites <em>markerdict</em>. The "fix" still drops 4 of the 5 markers (NAKATPASE, SDHA, IDH2, HEXOKINASE1 are now explicit <code>#-commented</code> lines), and re-routes G6PD to a newly introduced <code>'PPP'</code> key — disagreeing with cell 11's routing in the same notebook. So even after the author noticed the bug, the headline figure built from this dict shows 5/11 markers in cell 11 → 6/11 markers in cell 13 (PPP+G6PD newly added, OxRegulatory renamed). <strong>The published Fig 4 panel cannot show the full pathway breadth the paper describes</strong> — whichever cell drives the saved SVG, 4–5 markers are silently absent.</p>
+<div class="meta-row"><span>Impact: MODERATE (figure-level — readers cannot see headline markers IDH2/SDHA/HEXOKINASE1/NAKATPASE/CITRATESYNTHASE in the cell 11 panel; cell 13's "FIX" still omits 4 of 5).</span></div>
+</div>
+
+<div class="finding major"><span class="finding-id">F-B4</span> <span class="tag tag-ENRICHED">ENRICHED</span> <span class="sev sev-MAJOR">MAJOR</span> · <span class="verdict-VERIFIED">VERIFIED+ (empirical)</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Three pathway-routing dicts exist in the repo; they disagree on 4 markers; the only complete/correct one is dead code.</strong></p>
+<table>
+<thead><tr><th>Location</th><th>Routing for the 4 disputed markers</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><code>code/multivariate_analysis/2-GenerateCellularNeighbourhoods.ipynb</code> cell 36 (drives Figs 4 / 7b)</td><td>IDH2/SDHA/HEXOKINASE1/NAKATPASE → empty-string key → <em>deleted from cell_types_immune_metapath</em> (F-B2)</td><td><strong>Active — drives the analytic data</strong></td></tr>
+<tr><td><code>code/multivariate_analysis/3-UnderstandMetabolicNBs.ipynb</code> cell 11 / 13 (Fig 4 matrixplot)</td><td>SDHA→ATPSynthesis; IDH2→TCACyle; HEXOKINASE1→Glycolysis (cell 11) — but each silently lost to duplicate keys (F-B3); cell 13 drops them entirely</td><td><strong>Active — different routing from notebook 2</strong></td></tr>
+<tr><td><code>code/feature_generation/ReadClinicalData.py:138-141</code> (<code>combineMetaAndImmuneAndRefactorPathways</code>)</td><td>NAKATPASE+SDHA→ATPSynthesis; IDH2→TCACyle; HEXOKINASE1+G6PD→Glycolysis</td><td><strong>DEAD CODE</strong></td></tr>
+</tbody>
+</table>
+<p>Grep across the entire <code>code/</code> tree:</p>
+<pre>$ grep -rn "combineMetaAndImmuneAndRefactorPathways" code/
+code/feature_generation/ReadClinicalData.py:132:    def combineMetaAndImmuneAndRefactorPathways(self):
+code/feature_generation/ReadClinicalData.py:166:        #self.combineMetaAndImmuneAndRefactorPathways()</pre>
+<p>The only call site is line 166, <strong>commented out</strong>. The function is defined but never invoked. So the codebase contains the correct pathway-routing logic — but the version that actually shapes the analytic data (notebook 2 cell 36, the F-B2 buggy dict) is what shipped to UQ eSpace. The "correct" routing in <code>ReadClinicalData.py</code> is intent-evidence that the authors knew the right answer, but it never ran.</p>
+<div class="meta-row"><span>Impact: MODERATE — strengthens F-B2 (the correct routing exists in the repo, proving the empty-string bucket was a typo, not a design choice). Also explains why notebook 2 and notebook 3 disagree: they reference different (also-buggy) dicts inline rather than a shared definition.</span></div>
+</div>
+
+<div class="finding"><span class="finding-id">F-B5</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-NEGLIGIBLE">↓ NEGLIGIBLE</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Mann-Whitney "above-median" group uses <code>== median</code> instead of <code>&gt; median</code>.</strong> <code>4-GenerateFeatures.ipynb</code> cell 39 (function <code>mannwhit</code>). The bug is real, but impact-runner confirmed the function is only invoked in an exploratory print cell (40); the substantive analysis uses <code>runmannwhitney</code> (cell 110) with <code>CB6==1</code> splits, which is correct. Severity downgraded from BLOCKER (compiled) to NEGLIGIBLE.</p>
+<div class="meta-row"><span>Impact: NEGLIGIBLE (dead function).</span></div>
+</div>
+
+<div class="finding major"><span class="finding-id">F-B6</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-MAJOR">MAJOR</span> · <span class="verdict-PARTIAL">PARTIAL (empirically narrower than feared)</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>"Median split" actually splits by mean.</strong> <code>5-SelectFeaturesMultivariate.ipynb</code> cell 132 (inside <code>get_pvalues</code>): <code>median = df[feature].mean()</code>, then <code>feature_encoded = (df[feature] &gt; median).astype(int)</code>, labeled <code>['Below Mean','Above Mean']</code>. Paper Fig 2g / 7b describe "split by median."</p>
+<p><strong>Empirical verification on <code>3-metabolic_GCross.csv</code> (n=55 patients × 2434 features, the analytic CSV that feeds Figs 4/7b):</strong> across 772 non-degenerate features (≥15 nonzero, mean ≠ median), <strong>mean 5.2% of patients flip arm per feature</strong>; <strong>109/772 features (14.1%) flip ≥10% of patients</strong>; <strong>62/772 (8.0%) flip ≥15%</strong>; <strong>26/772 (3.4%) flip ≥20%</strong>; max single-feature flip = 24/55 patients (44%). Log-rank tests on the top-200 most-affected features: <strong>only 2/197 (1.0%) cross the p=0.05 threshold between median- and mean-splits</strong>; 12/197 (6%) sit near significance (0.05–0.10) under one split but not the other. Translation: the bug is real and shifts individual KM curves, but at the n=55 cohort level the headline p-value lands on the same side of 0.05 for ~99% of features. Headline "significant" KM features are NOT systematically created by this bug.</p>
+<div class="meta-row"><span>Impact: MINOR-MODERATE (figure-level cosmetic differences; very few significance crossings).</span></div>
+</div>
+
+<div class="finding major"><span class="finding-id">F-B7</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-MAJOR">MAJOR</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>CoxPH train/test = <code>iloc[:50]</code> / <code>iloc[50:]</code> = cohort split, not random.</strong> <code>notebooks/5</code> cells 42/43, 50/51, 52/53, 57. <code>pre_X_all</code> sorted by patientid (~YTMA404 then YTMA471). Held-out C-index measures cross-cohort generalization, not internal. Not disclosed.</p>
+<div class="meta-row"><span>Impact: MODERATE.</span></div>
+</div>
+
+<div class="finding major"><span class="finding-id">F-B8</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-MAJOR">MAJOR</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Hardcoded <code>allSelectedFeatures</code> overrides STABL output.</strong> Notebook 5 cell 112 literally comments <code># List them so that rerunning stabl is not needed</code> then assigns a literal feature list. STABL is stochastic; downstream uses literal not actual output. Locks published figures, kills STABL reproducibility.</p>
+<div class="meta-row"><span>Impact: MODERATE.</span></div>
+</div>
+
+<div class="finding blocker"><span class="finding-id">F-B9</span> <span class="tag tag-ENRICHED">ENRICHED</span> <span class="sev sev-BLOCKER">BLOCKER</span> · <span class="verdict-VERIFIED">VERIFIED+ (empirically confirmed)</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Censored OS/PFS landmark vars overwritten with 0 via fillna.</strong> <code>2-GenerateCellularNeighbourhoods.ipynb</code> cell 9: <code>colstofill = ['pfs.12months','pfs.6months','OS.18months','OS.24months']; adata.obs[colstofill] = adata.obs[colstofill].fillna(0)</code>. NaN = censored-before-landmark → recoded as "no event by landmark". Biases OS analyses optimistically.</p>
+<p><strong>Empirical verification on the actual n=55 cohort:</strong> 14/55 patients (25.5%) are censored before 24 months and 7/55 (12.7%) before 12 months. Reconstructing the OS-24mo landmark from <code>OSTime</code>/<code>OSEvent</code> in <code>4-patientAnnData_NSCLC_merged.h5ad</code>: <strong>TRUE alive-at-24mo rate = 26.8%</strong> (11/41 informative patients alive); <strong>BUGGY rate after fillna(0) = 45.5%</strong> (25/55 mis-coded as "alive"). <strong>Optimistic bias: +18.6 percentage points</strong> on the OS-24-month endpoint. Patients censored before 24mo (which the paper has no information about) are forced into the "survived" arm, inflating every CB6-vs-no-CB6 OS contrast and KM 24-mo survival probability used in Figs 2/4/7.</p>
+<div class="meta-row"><span>Impact: MAJOR (confirmed +18.6 pp inflation; survival figures use the biased indicator).</span></div>
+</div>
+
+<div class="finding major"><span class="finding-id">F-B10</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-MAJOR">MAJOR</span> · <span class="verdict-VERIFIED">VERIFIED+ (bonus bug)</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Stale <code>est_cph_tree</code> (CB6-fitted) scores OS endpoint.</strong> Notebook 5 cell 58: <code>est_cph_tree_OS = CGB(...); est_cph_tree_OS.fit(..., survival_array_OS[indices_train])</code>, then <code>predicted_scores_OS = est_cph_tree.predict(...)</code> — uses CB6-fitted estimator. Verifier flagged an additional bug: <code>train_test_split(X_all, survival_array, ...)</code> uses indices from the PFS array but training labels are OS — two bugs in one cell.</p>
+<div class="meta-row"><span>Impact: MAJOR.</span></div>
+</div>
+
+<div class="finding major"><span class="finding-id">F-B11</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-MAJOR">MAJOR</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>K=3 CN view uses knn=20 in code vs paper Methods' N=30.</strong> Cell 54: <code>nolan.cellular_neighborhoods(adata, grouping="patientid", knn=20, kmeans=3, phenotype='tumournontumour')</code>. K=2 view (cell 60) correctly uses <code>knn=50, kmeans=2</code> matching paper's "N=50 for K=2 view." Only K=3 N is wrong.</p>
+<div class="meta-row"><span>Impact: MINOR.</span></div>
+</div>
+
+<div class="finding"><span class="finding-id">F-B12</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-MEDIUM">MEDIUM (REVISED from MAJOR)</span> · <span class="verdict-PARTIAL">REVISED after empirical verification</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>K=3 CN labels: <code>relabelUsingTumourFractions</code> uses its mapping in the wrong direction.</strong> <code>nolan.py:191-202</code> builds <code>mapping = {i: sortedIndexByGroup[i] for i in range(K)}</code> and applies <code>[mapping[lab] for lab in _labels]</code>. The CORRECT mapping is <code>{orig_cluster: rank}</code>; the code's mapping is its inverse permutation. <strong>Bug enumeration:</strong> of 6 possible KMeans-cluster→tumor-fraction orderings, the buggy mapping equals the correct one in <strong>4/6 cases</strong> (identity + 3 transpositions, all self-inverse) and produces wrong labels in <strong>2/6 cases</strong> (the cyclic permutations (2,0,1) and (1,2,0)).</p>
+<p><strong>Empirical verification on this dataset:</strong> the saved K=3 labels in <code>3-metabolic_GCross.csv</code> are <em>directionally correct</em> — cluster named 'Tumour' has mean tumor-tumor G-cross intensity <strong>183.27</strong> (highest); 'Stroma' has highest fibroblast-fibroblast intensity <strong>29.98</strong> vs 1.99 in 'Tumour'; 'Tumour_Stroma_interface' is intermediate on both. KMeans for this cohort landed in one of the 4/6 self-inverse permutations, so the bug was a no-op here.</p>
+<p><strong>Latent risk:</strong> the bug is real and silently fragile. With F-C2 (missing <code>random_state</code> in the K=3 KMeans call, notebook 2 cell 45) the cluster-id permutation is non-deterministic across reruns and would land in the 2/6 buggy regime on ~33% of seeds — at which point Figs 4/7 K=3 labels WOULD be scrambled. This dataset's published figures are not mislabeled at the cell-type level; <em>reproducing</em> the analysis is.</p>
+<div class="meta-row"><span>Impact: MEDIUM (latent; would be MAJOR under a different KMeans seed; published figures unaffected at the cell-type level).</span></div>
+</div>
+
+<div class="finding major"><span class="finding-id">F-B13</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-MAJOR">MAJOR</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Nuclear + membrane channels averaged per marker before high/low call.</strong> Notebook 1 cell 21: <code>nsclcq_means = pd.concat([nsclcq[pairs].mean(axis=1) for pairs in col_pairs], axis=1)</code>. Nuclear Ki67 and membrane Ki67 are biologically distinct; averaging dilutes localization signal.</p>
+<div class="meta-row"><span>Impact: MODERATE.</span></div>
+</div>
+
+<div class="finding major"><span class="finding-id">F-B14</span> <span class="tag tag-BLIND">BLIND</span> <span class="sev sev-MAJOR">MAJOR</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>NaN→0 / JSD-NaN→1 imputation injects deterministic extremes into STABL.</strong> Notebook 5 cell 18: <code>X.loc[:, X.columns.str.contains('JSD')] = ....fillna(1.0); X.loc[:, ~X.columns.str.contains('smi')] = ....fillna(0.0)</code>.</p>
+<div class="meta-row"><span>Impact: MODERATE.</span></div>
+</div>
+
+<div class="finding"><span class="finding-id">F-B15</span> <span class="tag tag-ENRICHED">ENRICHED</span> <span class="sev sev-MEDIUM">MEDIUM</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>logFC sign polarity depends on <code>.unique()</code> first-appearance order.</strong> <code>univariate.py:1334, 1407-1410</code> (and again at lines 2018, 2097-2099). Same pattern repeated 4 times in the file.</p>
+<div class="meta-row"><span>Impact: MINOR (silent sign-flip risk).</span></div>
+</div>
+
+<div class="finding"><span class="finding-id">F-B16</span> <span class="tag tag-ENRICHED">ENRICHED</span> <span class="sev sev-MINOR">MINOR</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span>
+<p><strong>Hardcoded patient-ID dedup in <code>univariate.py:285-294</code>.</strong> Removes only <code>CPID == "22193" &amp; SPID in {"35119","22519"}</code>. Fragile to sheet re-export.</p>
+<div class="meta-row"><span>Impact: MINOR.</span></div>
+</div>
+
+<h2 id="findings-C">C. Code bugs — latent / not-results-changing (5 findings)</h2>
+
+<div class="finding"><span class="finding-id">F-C1</span> <span class="tag tag-ENRICHED">ENRICHED</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span> · <span class="sev sev-LOW">LOW</span>
+<p><code>.values.isna()</code> AttributeError. <code>univariate.py:704</code>. Reachable only when stratifier ≠ "CB6".</p></div>
+
+<div class="finding"><span class="finding-id">F-C2</span> <span class="tag tag-BLIND">BLIND</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span> · <span class="sev sev-MEDIUM">MEDIUM</span>
+<p>KMeans without <code>random_state</code> in <code>compute_kmeans_neighborhoods</code> (notebook 2 cell 45). Compounds F-B12.</p></div>
+
+<div class="finding"><span class="finding-id">F-C3</span> <span class="tag tag-BLIND">BLIND</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span> · <span class="sev sev-MINOR">MINOR</span>
+<p><code>nolan._get_necessary_data</code> 5th/6th args swapped at call site. Inert today.</p></div>
+
+<div class="finding"><span class="finding-id">F-C4</span> <span class="tag tag-BLIND">BLIND</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span> · <span class="sev sev-MINOR">MINOR</span>
+<p><code>relabelUsingTumourFractions</code> would crash on default <code>sortByPhenotype=None</code>. Notebooks always pass <code>'tumournontumour'</code>.</p></div>
+
+<div class="finding"><span class="finding-id">F-C5</span> <span class="tag tag-ENRICHED">ENRICHED</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span> · <span class="sev sev-TRIVIAL">TRIVIAL</span>
+<p><code>.applymap</code> deprecated in pandas ≥ 2.1. <code>univariate.py:1220</code>.</p></div>
+
+<h2 id="findings-D">D. Data integrity / parse artifacts (5 findings)</h2>
+
+<div class="finding"><span class="finding-id">F-D1</span> <span class="tag tag-BOTH">BOTH</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span> · <span class="sev sev-MEDIUM">MEDIUM</span>
+<p><code>cell_type_marker_rules.csv</code>: 195/858 rows have legend strings in <code>cell_type</code> column. 5 legend strings × 39 markers each. <code>cell_type.unique()</code> returns 20 values, only 15 real. <code>rule_value</code> distribution: NaN×468, 0.0×213, -1.0×111, 2.0×39, 1.0×27.</p></div>
+
+<div class="finding"><span class="finding-id">F-D2</span> <span class="tag tag-BOTH">BOTH</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span> · <span class="sev sev-MEDIUM">MEDIUM</span>
+<p>After case-fold + alphanum-strip, 4 rule markers don't map to panel: <code>cd163</code>, <code>cd57</code>, <code>col4</code> (likely = Collagen IV alias), <code>nakatpase</code>. Three are missing from panel CSV entirely.</p></div>
+
+<div class="finding"><span class="finding-id">F-D3</span> <span class="tag tag-BOTH">BOTH</span> · <span class="verdict-PARTIAL">PARTIAL</span> · <span class="novel-NOVEL">NOVEL</span> · <span class="sev sev-LOW">LOW</span>
+<p>Panel data quirks: <code>"TCA Cyle"</code> typo (Function); GLUT1 barcode <code>B025</code> missing BX prefix; CD68 has <em>trailing</em> space <code>"BX015 "</code> (compiled report said leading — verifier corrected). Akoya Custom rows use placeholders.</p></div>
+
+<div class="finding"><span class="finding-id">F-D4</span> <span class="tag tag-BOTH">BOTH</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span> · <span class="sev sev-LOW">LOW</span>
+<p><code>clinical_summary_by_sex.csv</code> polymorphic cells: 5 shape categories in same column; <code>pd.to_numeric</code> → all NaN. Footnote rows 75-76 are inline text.</p></div>
+
+<div class="finding"><span class="finding-id">F-D5</span> <span class="tag tag-BOTH">BOTH</span> · <span class="verdict-VERIFIED">VERIFIED</span> · <span class="novel-NOVEL">NOVEL</span> · <span class="sev sev-TRIVIAL">TRIVIAL</span>
+<p><code>study_publication.csv</code> has 1 row, not 2 (brief correction).</p></div>
+
+<h2 id="findings-E">E. Enrichment-layer known-issue verdicts (3 findings)</h2>
+
+<div class="finding"><span class="finding-id">F-E1</span> <span class="tag tag-ENRICHED">ENRICHED</span> · <span class="verdict-VERIFIED">VERIFIED</span>
+<p><code>rule_value</code> typed <code>measurement</code> (conf 0.85) but is actually 5 discrete codes per the embedded legend (-1=ignore / 0=must-be-negative / 1=must-be-positive / 2=either-positive). Should be <code>coded_concept</code>. Repo code doesn't consume the CSV (bug surface is upstream cell-typing pipeline / external consumers).</p></div>
+
+<div class="finding"><span class="finding-id">F-E2</span> <span class="tag tag-ENRICHED">ENRICHED</span> · <span class="verdict-VERIFIED">VERIFIED</span>
+<p><code>Female</code> typed <code>classifier</code> vs <code>Male</code> typed <code>quantity</code> — same composite-string column, asymmetric types. No code consumer in repo.</p></div>
+
+<div class="finding"><span class="finding-id">F-E3</span> <span class="tag tag-ENRICHED">ENRICHED</span> · <span class="verdict-VERIFIED">VERIFIED</span>
+<p>Parse artifacts in <code>cell_type</code> column — same as F-D1. Bug surface is downstream / external consumers.</p></div>
+
+<h2 id="enrichment-value">Enrichment value</h2>
+
+<table>
+<thead><tr><th>Tag</th><th>Count</th><th>Examples</th></tr></thead>
+<tbody>
+<tr><td>BLIND-only</td><td>18</td><td>F-A5, F-A6, F-A8, F-B2, F-B6-B8, F-B10-B14, F-C2-C4</td></tr>
+<tr><td>ENRICHED-only</td><td>7</td><td>F-B3, F-B4, F-B9, F-B15, F-B16, F-C1, F-C5</td></tr>
+<tr><td>BOTH (independently)</td><td>11</td><td>F-A1-A4, F-B1, F-D1-D5, plus the 3 enrichment verdicts</td></tr>
+<tr><td>CORRECTED</td><td>1</td><td>F-A7 (blind miscounted 15-vs-14; enriched corrected: 14 mutually-exclusive + 1 artifact)</td></tr>
+</tbody>
+</table>
+
+<p><strong>Verdict: HIGH enrichment value</strong> — 7 ENRICHED-only findings (including F-B9 BLOCKER on censored survival), plus 1 CORRECTED, plus the cross-file pathway disagreement (F-B4) that needed dataset-context to see.</p>
+
+<h2 id="empirical">Empirical verification on the analytic data</h2>
+
+<p>The analytic data (<code>4-patientAnnData_NSCLC_merged.h5ad</code>, n=55, and the pre-aggregated <code>3-metabolic_GCross.csv</code>) was retrieved from UQ eSpace (DOI <a href="https://doi.org/10.48610/73b218c">10.48610/73b218c</a>, behind the paper's data-availability pointer that the GitHub README omits — see F-A1). Findings F-B2, F-B3, F-B4, F-B6, F-B9, F-B12 were re-run against the actual data / code; the rest stand on code analysis alone (some need notebook-execution context not reproducible without intermediate state).</p>
+
+<table>
+<thead><tr><th>Finding</th><th>Predicted impact</th><th>Empirical result</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>F-B2 (4 metabolic markers routed to empty-string key)</td><td>"silent drop of IDH2/SDHA/HEXOKINASE1/NAKATPASE — headline OXPHOS / TCA story"</td><td>Pre-strip <code>tumour_meta</code>: IDH2 in 37/54 (68%), NAKATPASE 68%, SDHA 52%, HEXOKINASE1 24%. Post-strip <code>cell_types_immune_metapath</code>: <strong>0/212</strong> for all 4. Every Funcmetapath feature tensor (Figs 4/7b) confirmed missing these markers.</td><td><strong>CONFIRMED — silent deletion at scale</strong></td></tr>
+<tr><td>F-B3 (duplicate-key markerdict)</td><td>"5 markers silently dropped from Fig 4 matrixplot"</td><td>Notebook 3 cell 11: 11 literal entries → <strong>6 final keys</strong> via Python last-write-wins; ATPA5, NAKATPASE, CITRATESYNTHASE, HEXOKINASE1, G6PD all silently dropped. Cell 13 (marked <code># FIX THIS</code>) still omits NAKATPASE/SDHA/IDH2/HEXOKINASE1 via commented-out lines.</td><td><strong>CONFIRMED + STRENGTHENED</strong> — author tried to fix it but the "fix" still drops 4 of 5 missing markers</td></tr>
+<tr><td>F-B4 (cross-file pathway disagreement)</td><td>"two notebooks disagree on routing"</td><td>Found <strong>three</strong> disagreeing dicts (not two). The only correct/complete one — <code>ReadClinicalData.py:combineMetaAndImmuneAndRefactorPathways</code> — has its sole call site (line 166) commented out; grep across <code>code/</code> confirms <strong>zero un-commented invocations</strong>. So the codebase contains the right answer; it just doesn't run.</td><td><strong>CONFIRMED + STRENGTHENED</strong> — correct routing is dead code, confirming F-B2 was a typo not a design choice</td></tr>
+<tr><td>F-B9 (censored→0 landmark)</td><td>"biases OS-at-24-months optimistically"</td><td><strong>+18.6 pp inflation</strong> (true rate 26.8%, buggy 45.5%); 14/55 patients (25%) censored before 24mo</td><td><strong>CONFIRMED, upgraded to MAJOR</strong></td></tr>
+<tr><td>F-B6 (mean-vs-median split)</td><td>"11–20% of patients shift arms per feature; potentially MAJOR"</td><td>5.2% mean per-feature flip; <strong>only 2/197 (1.0%) features cross p=0.05</strong>; 109/772 features flip ≥10% of patients</td><td><strong>NARROWER than feared</strong> (cosmetic shifts; ~99% of features keep their significance verdict)</td></tr>
+<tr><td>F-B12 (K=3 CN label permutation)</td><td>"every K=3 feature in Figs 4/7 mislabeled — a 3-way permutation"</td><td>Function IS buggy (2/6 KMeans permutations produce wrong labels); <strong>this cohort's permutation landed in the safe 4/6</strong>; saved labels are directionally correct (Tumour cluster has highest tumor-tumor signal 183.27; Stroma has highest fibro signal 29.98)</td><td><strong>REVISED to MEDIUM</strong> — bug latent here; reproducibility-fragile because F-C2 missing <code>random_state</code></td></tr>
+</tbody>
+</table>
+
+<p>Verification scripts: <code>analytic_data/verify_b2_pathway_routing.py</code> (F-B2 strip evidence in tumour_meta vs cell_types_immune_metapath; obsm dim-name scan), <code>analytic_data/verify_gcross_csv.py</code> (F-B6, F-B9), <code>analytic_data/verify_b12_direction_and_logrank.py</code> (F-B12 direction + log-rank crossings), <code>analytic_data/verify_b12_final.py</code> (permutation enumeration). F-B3 / F-B4 verified by re-executing the duplicate-key dict in Python and by repo-wide grep on the correct routing function's call sites.</p>
+
+<h2 id="compounds">Compound effects</h2>
+
+<ol>
+<li><strong>F-B1 + F-A3</strong> stack on histology-stratified analyses: cohort is the wrong N and SCLC is silently mislabeled as Squamous. Any Squamous-specific claim in Figs 4/7 inherits both. (F-B12 was originally listed in this stack; empirical verification shows the K=3 labels in the saved data are directionally correct, so it does not compound here — but reruns under a different KMeans seed would re-introduce the K=3 mislabel.)</li>
+<li><strong>F-B2 + F-B3 + F-B4</strong> stack on the metabolic pathway story. Empirically: notebook 2 cell 36 routes 4 markers to empty-string key → silently deleted from <code>cell_types_immune_metapath</code> (0/212 post-strip, F-B2). Notebook 3 cell 11's <em>different</em> dict has duplicate keys that drop 5 markers from the Fig 4 matrixplot (F-B3); cell 13's <em>still-different</em> "fix" leaves out 4. The correct pathway routing exists in <code>ReadClinicalData.py</code> but is dead code (line 166 commented out, zero invocations, F-B4). The "metabolic neighborhood" construct the paper hangs on is built on three different inconsistent dicts, none of them the one the authors knew was correct.</li>
+<li><strong>F-B6 + F-B9</strong> stack on the survival figures. F-B9 is the dominant compounder: every KM curve uses an OS-24mo indicator inflated by +18.6 pp. F-B6 (mean-not-median) shifts a small fraction of arms cosmetically but rarely flips the significance verdict.</li>
+</ol>
+
+<h2>Net read</h2>
+<p>After empirical verification against the analytic data: the paper's headline metabolic-neighborhood + KM-survival story is supported by code with <strong>two quantitatively-confirmed BLOCKERs</strong> — F-B2 (IDH2/SDHA/HEXOKINASE1/NAKATPASE silently stripped from the very <code>cell_types_immune_metapath</code> column that MetaPathNeighbourhood clustering and every Funcmetapath feature in Figs 4 / 7b are built from; the markers appear in 24–68% of pre-strip tumour-meta profiles and 0% of post-strip ones) and F-B9 (+18.6 pp inflation on OS-24mo rate). Several other substantive bugs were dampened by the n=55 cohort's specific draw (F-B6 mean-vs-median shifts only 1% of features across p=0.05; F-B12 K=3 labels are directionally correct in the saved CSV because the KMeans permutation landed in a self-inverse case) but remain reproducibility-fragile (F-C2 missing <code>random_state</code> + F-B12 mapping bug would scramble K=3 labels on ~33% of seeds). F-A2 is an obvious publication-data error any reader can catch. F-A6 is a biology error in the paper text but the code is correct. F-A1 means a reader cloning the repo cannot reproduce anything end-to-end without the AnnData behind DOI <code>10.48610/73b218c</code> — which the README does not link.</p>
+
+<h2>Recommended actions for the authors</h2>
+<ol>
+<li><strong>Issue an Author Correction</strong> covering (at minimum) F-A2 (N=801/N=861 typo), F-A6 (CD45 polarity in Methods text), F-A4 (10 antibodies missing from panel CSV — supply the full 44-plex panel or document why 10 are withheld), and F-A3 (clarify which cohort <code>clinical_summary_by_sex.csv</code> describes).</li>
+<li><strong>Re-run notebooks with fixes</strong> for F-B1 (drop SCLC), F-B2 (route IDH2/SDHA/HEX1/NAKATPASE to their correct pathway keys), F-B6 (use median, not mean), F-B9 (preserve NaN in landmark survival), F-B10 (use <code>est_cph_tree_OS</code> for OS scoring; OS labels with OS-aligned indices), F-B12 (fix the permutation in <code>relabelUsingTumourFractions</code>).</li>
+<li><strong>Add data-availability pointer</strong> to README explaining that <code>dataset/</code> is reference/summary and analytic data lives at DOI 10.48610/73b218c. Note KNN-backfill rate per cell type (F-A8).</li>
+<li><strong>Add a STABL random_seed and seedable KMeans</strong> (F-C2, F-B8) so the literal feature list and CN cluster IDs are reproducible.</li>
+</ol>
+
+<hr>
+<p style="font-size: 0.85em; color: #666;">Audit conducted with the <code>/audit</code> 9-agent workflow (3 blind + 3 enriched + 3 summary). Source: <a href="https://github.com/clinicalomx/metabolic-microenvironment-predictors-of-nsclc-immunotherapy-response">clinicalomx/metabolic-microenvironment-predictors-of-nsclc-immunotherapy-response</a>. Compiled findings: <code>/tmp/nsclc_audit_compiled.html</code>.</p>
+
+</body>
+</html>
