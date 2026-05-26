@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>A reproducibility audit of DrugGPT — released artifacts do not support the headline benchmark comparisons</title>
+<style>
+  :root {
+    --text: #1a1a1a;
+    --muted: #5a5a5a;
+    --rule: #d0d0d0;
+    --accent: #8b0000;
+    --soft: #faf7f2;
+    --strong: #f5e6e6;
+    --code-bg: #f4f4f4;
+  }
+  body {
+    font-family: Charter, 'Source Serif Pro', Georgia, serif;
+    max-width: 880px;
+    margin: 3rem auto;
+    padding: 0 2rem;
+    color: var(--text);
+    line-height: 1.55;
+    font-size: 17px;
+  }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin-bottom: 0.2rem; }
+  h2 { font-size: 1.3rem; margin-top: 2.5rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  h3 { font-size: 1.05rem; margin-top: 1.8rem; color: var(--accent); }
+  h4 { font-size: 1rem; margin-top: 1.4rem; margin-bottom: 0.4rem; }
+  .subtitle { color: var(--muted); font-style: italic; margin-bottom: 0.4rem; }
+  .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+  .tldr {
+    background: var(--strong);
+    border-left: 4px solid var(--accent);
+    padding: 1rem 1.4rem;
+    margin: 1.5rem 0 2rem 0;
+  }
+  .tldr h2 { border: none; margin-top: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .callout {
+    background: var(--soft);
+    border-left: 3px solid var(--rule);
+    padding: 0.8rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+  }
+  code { background: var(--code-bg); padding: 0 0.25em; border-radius: 3px; font-size: 0.92em; }
+  table { border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; width: 100%; }
+  th, td { border: 1px solid var(--rule); padding: 0.45rem 0.7rem; text-align: left; vertical-align: top; }
+  th { background: var(--soft); font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.1em 0.5em;
+    border-radius: 3px;
+    margin-right: 0.3em;
+    vertical-align: middle;
+  }
+  .tag-major { background: #c0392b; color: white; }
+  .tag-moderate { background: #d68910; color: white; }
+  .tag-minor { background: #8e8e8e; color: white; }
+  .axis-summary {
+    background: var(--soft);
+    padding: 0.7rem 1rem;
+    margin: 0.5rem 0 1rem 0;
+    font-size: 0.95rem;
+    border-radius: 3px;
+  }
+  .axis-summary b { color: var(--accent); }
+  ul { padding-left: 1.4rem; }
+  li { margin-bottom: 0.3rem; }
+  hr { border: none; border-top: 1px solid var(--rule); margin: 3rem 0 1rem 0; }
+  footer { color: var(--muted); font-size: 0.85rem; margin-top: 2rem; }
+</style>
+</head>
+<body>
+
+<h1>A reproducibility audit of DrugGPT</h1>
+<div class="subtitle">Released artifacts do not support the headline benchmark comparisons — a methodological synthesis grouped by validity axis</div>
+<div class="meta">Subject paper: <i>A collaborative large language model for drug analysis</i>, <i>Nature Biomedical Engineering</i> (2025) · PMID&nbsp;40987953 · PMC13190338</div>
+
+<div class="callout"><b>Scope.</b> This audit evaluates the released code, data, and numerical claims. It does not infer author intent, misconduct, or the intrinsic quality of the underlying DrugGPT model. The conclusions are limited to whether the released artifacts support the paper's reported empirical comparisons. The audit treats the released artifacts as the <i>object of evaluation</i>: if the published numbers were produced by a different internal code path, preprocessing pipeline, split definition, or grader, the issue becomes one of artifact mismatch rather than necessarily numerical error. In either case, the released materials do not currently provide reproducible support for the headline comparisons.</div>
+
+<div class="tldr">
+<h2>TL;DR</h2>
+<p>The paper's three flagship comparisons — <b>88.2% on USMLE/MedQA</b> vs Med-PaLM&nbsp;2 (86.5) and GPT-4 (83.5); <b>88.0% on PubMedQA</b> vs Med-PaLM&nbsp;2 (79.2); <b>97.1% on Drug–Drug Interaction</b> vs GPT-4 (62.8) — are not supported by the released code and data as currently available. Five independent methodological validity axes converge on the same conclusion: every headline number is computed on <b>a different problem</b> than the baseline it is compared against, on <b>contaminated test populations</b> in which every test row appears verbatim in the file the released harness loads as training data, and with <b>scoring code</b> that asymmetrically penalises any model not fine-tuned to the released harness's bare-letter output format.</p>
+<p>The strongest single observation is structural: in the released artifacts, the file loaded as training data contains <b>100% of every MedQA test set</b> (US, Mainland, Taiwan) with the correct answer attached. A central structural inconsistency is that the released scoring code, on the released data, has a mechanical accuracy ceiling of <b>0.31%</b> on the US-MedQA test split — so whatever code path produced 88.2% is <b>not reproduced by the released evaluation path</b>.</p>
+<p>Individually any one of these findings would be a serious methodological concern. Their combined effect is that the cross-paper accuracy comparisons in Table 1, and the multilingual and ablation claims that depend on them, are <b>not interpretable as evidence of the proposed method's effectiveness from the released artifacts alone</b>. These findings could be resolved by identifying an alternative evaluation path, unreleased preprocessing step, or held-out split that exactly reproduces the reported numbers and preserves comparability to the cited baselines.</p>
+</div>
+
+<h2>1. How the audit was carried out</h2>
+
+<p>Each released data file (parquet, CSV, JSONL) was passed through a semantic-enrichment process that derives, per column, the <i>meaning</i> of the field (canonical entity, units, value space, role within the table), and per table the <i>grain</i> (one row = one what), <i>join keys</i>, and <i>relationships</i> with sibling tables. The same process flags structural pathologies — train/test set membership, primary-key duplicates, sentinel-as-data encodings, schema drift across files claimed to share a schema, and so on.</p>
+
+<p>The enriched view of the data was then reconciled against (a)&nbsp;the released harness code, line by line at every scoring, parsing, and dataset-loading site, and (b)&nbsp;the numerical claims in the paper. A finding is recorded only where one of these three sources is in tension with another — i.e. where the paper's claim, the code's behaviour, and the data's actual content cannot all hold simultaneously.</p>
+
+<p>This document presents only the findings that affect the paper's <b>methodological claims</b>. Reproducibility-only issues (missing artefacts, broken hosting, absent preprocessing scripts) are out of scope here — they prevent re-running the experiment but do not themselves shift a reported number.</p>
+
+<h2>2. The five methodological validity axes</h2>
+
+<p>Forty-six independent findings collapse onto five axes. Within each axis the findings <i>compound</i>: every member pushes the comparison in the same direction, and the joint effect is larger than any single member.</p>
+
+<h3>Axis A — Test-set contamination</h3>
+<div class="axis-summary"><b>What it does:</b> Means reported accuracy on the affected splits is compatible with memorization rather than generalization, because the test rows are inside the file the released harness loads as training data, with the correct answer attached.</div>
+
+<h4>A.1 In the released artifacts, every MedQA test row appears in the file loaded as training data</h4>
+<p><span class="tag tag-major">MAJOR</span></p>
+<p><b>Observed.</b> The file <code>qbank.parquet</code>, which the released harness loads when its training flag is set, contains:</p>
+<ul>
+  <li>US MedQA: <b>1273 / 1273 test rows (100.0%)</b></li>
+  <li>Mainland MedQA: <b>3396 / 3396 test rows (100.0%)</b></li>
+  <li>Taiwan MedQA: <b>1413 / 1413 test rows (100.0%)</b></li>
+  <li>US MedQA train: <b>10176 / 10176 (100.0%)</b></li>
+</ul>
+<p>The overlap is verbatim — same question text, same option set, same gold answer.</p>
+<p><b>Implication.</b> The reported held-out accuracy on these splits is compatible with memorization and cannot, on the released artifacts alone, be interpreted as evidence of generalization. The memorization upper bound on the reported splits is 100%.</p>
+
+<h4>A.2 In the released artifacts, every PubMedQA-L test PMID appears in the file used by the harness for fine-tuning, with the correct label</h4>
+<p><span class="tag tag-major">MAJOR</span></p>
+<p><b>Observed.</b> The 500-row canonical PubMedQA-L test split, on which Med-PaLM&nbsp;2 reports 79.2%, is fully contained in <code>pqal</code> — the file the released harness reads to fine-tune. All 500 PMIDs are present; the gold label matches the test gold on 500 / 500.</p>
+<p><b>Implication.</b> The PubMedQA convention requires excluding test PMIDs from the fine-tuning split before training; the released harness performs no such filter. On these artifacts, the reported 88.0% is compatible with memorization of the labelled test PMIDs and is not comparable to baselines that follow the standard exclusion convention.</p>
+
+<h4>A.3 Mainland: 11% of the test set is duplicated verbatim inside the training set, and the duplicates often disagree on the gold answer</h4>
+<p><span class="tag tag-moderate">MODERATE</span> Of 3,426 Mainland-test rows, 379 (11.2%) appear verbatim as Mainland-train rows. Of those 379 contaminated pairs, <b>74 (19.5%) carry a different gold answer in train than in test</b> — direct evidence of supervision-noise on top of leakage: at least one of the two labels is wrong.</p>
+
+<h4>A.4 Lower-frequency label-noise findings on the same axis</h4>
+<ul>
+  <li>US-MedQA train: at least 2 questions with multiple gold answers across rows (<span class="tag tag-minor">MINOR</span>).</li>
+  <li>Mainland train: 5.86% duplicated question-strings (training distribution distortion).</li>
+</ul>
+
+<div class="callout"><b>Combined effect on the paper:</b> On the released artifacts, the headline accuracy on US, Mainland, and Taiwan MedQA, and on PubMedQA-L, is computed on test populations that are <b>fully contained</b> in the files the released harness loads as training inputs. Differences between DrugGPT and the baselines on these benchmarks cannot, from the released materials alone, be attributed to better generalization, because the test sets are not held out from the released training inputs.</div>
+
+<h3>Axis B — Benchmark redefinition</h3>
+<div class="axis-summary"><b>What it does:</b> The reported number and the baseline it is compared to are computed on different problems. The headline comparison is therefore not measuring what it appears to measure.</div>
+
+<h4>B.1 PubMedQA is reported on the wrong split — and answered with the wrong inputs</h4>
+<p><span class="tag tag-major">MAJOR</span> Med-PaLM&nbsp;2's 79.2 PubMedQA number is reported on the 1,000-row labelled split <code>pqal</code> (canonical test = 500). The DrugGPT paper claims "10,000 PubMedQA test samples", which can only be sourced from <code>pqaa</code> — the 211,269-row auto-derived split. On <code>pqaa</code>, the yes-rate of the auto-label is 92.8%; a model that answers "yes" every time already reaches 92.8% on this set. The reported 88.0 is therefore below the trivial majority-class baseline on its own evaluation population.</p>
+
+<p><span class="tag tag-major">MAJOR</span> PubMedQA is by construction an open-book task: each question ships with the supporting abstract in the column <code>contexts</code> (plural). The released harness's loader guards on <code>'context'</code> (singular), a column that does not exist in these files. The abstract is therefore silently elided on every PubMedQA call: on the released code path, the question is answered without the supporting abstract. PubMedQA closed-book is a strictly harder task; in the literature it sits 10–15 points below open-book scores. Under the released code path the reported 88.0 would represent a substantial new closed-book result, which is not how the number is presented in the paper.</p>
+
+<h4>B.2 PubMedQA is silently turned from a 3-class problem into a 2-class problem</h4>
+<p><span class="tag tag-moderate">MODERATE</span> PubMedQA-L is yes/no/maybe (552 / 338 / 110 in the labelled split — 11% <code>maybe</code>). The harness emits yes/no only, and rebalances those two classes to a 50/50 mix. Med-PaLM&nbsp;2's 79.2 number is on the 3-class problem; DrugGPT's 88.0 is on a force-balanced 2-class problem. The random-baseline floor shifts from 33.3% to 50.0%, and the cross-paper comparison is across different problem definitions.</p>
+
+<h4>B.3 USMLE / MedQA "10,000 test samples" is not the canonical test set</h4>
+<p><span class="tag tag-major">MAJOR</span> The canonical USMLE/MedQA test set is 1,273 rows — the population on which Med-PaLM&nbsp;2 reports 86.5 and GPT-4 reports 83.5. Reaching 10,000 rows requires either concatenating train + dev + test (12,723) or pulling from <code>qbank</code>, which we already know contains the test set. Neither population is a "test" set in the sense that the cross-paper baselines use.</p>
+
+<h4>B.4 Drug–Drug Interaction is reported on a different task than its baseline</h4>
+<p><span class="tag tag-major">MAJOR</span> The canonical DDI-2013 benchmark — on which GPT-4's 62.8 is reported — is a 4-class or 5-class problem (<code>EFFECT</code>, <code>MECHANISM</code>, <code>ADVISE</code>, <code>INT</code>, plus <code>none</code>); published 4-class state-of-the-art sits in the 70s. The released DDI evaluation discards the multi-class structure: 500 positive examples plus 500 author-synthesised negatives (no <code>none</code> rows exist in the released data), then scored as binary positive-vs-negative. DrugGPT's 97.1 vs GPT-4's 62.8 compares a binary task with synthesised negatives against a 4-class task on real data.</p>
+
+<div class="callout"><b>Combined effect on the paper:</b> The three flagship comparisons against external baselines (Med-PaLM&nbsp;2 on USMLE, Med-PaLM&nbsp;2 on PubMedQA, GPT-4 on DDI) are each, on the released artifacts, on a <b>different task or a different test population</b> than the baseline number they are placed next to. Independent of any data-side issue, the headline table does not, on these artifacts, compare like with like.</div>
+
+<h3>Axis C — Scoring asymmetry</h3>
+<div class="axis-summary"><b>What it does:</b> The grading parsers asymmetrically mis-score models that emit well-formed but non-canonical answers. Strong instruction-following models are systematically downgraded; a model fine-tuned on the released harness's exact output format escapes the bias.</div>
+
+<h4>C.1 On the released artifacts, the mechanical scoring ceiling for US-MedQA is 0.31%</h4>
+<p><span class="tag tag-major">MAJOR</span></p>
+<p><b>Observed.</b> In <code>qbank</code> the <code>answer</code> column is a single letter (100.0% of rows). In the canonical MedQA test file the <code>answer</code> column is the full answer <i>text</i> (single-letter rate 0.6%). The released grader compares the model's letter prediction to the gold <code>answer</code> field via direct equality. On the canonical US-MedQA test split, 1269 / 1273 rows (99.7%) score 0 by construction — gold is text, prediction is a letter.</p>
+<p><b>Implication.</b> The mechanical accuracy ceiling of the released evaluation path on the released data is approximately <b>4 / 1273 = 0.31%</b>. The reported 88.2% is therefore not reproduced by the released evaluation path; reproducing it requires an alternative code path or label column that is not part of the public release.</p>
+
+<h4>C.2 The harness drops MedQA's fifth option but the data is mostly 5-option</h4>
+<p><span class="tag tag-moderate">MODERATE</span> The MedQA prompt template lists options A–D, and the parser accepts A–D. The data, however, is dominated by five-option questions:</p>
+<ul>
+  <li>US test: 202 / 1273 (15.9%) rows have gold = E</li>
+  <li>US train: 1841 / 10178 (18.1%) gold = E</li>
+  <li>Mainland test: 633 / 3426 (18.5%) gold = E</li>
+</ul>
+<p>A perfect A–D model still misses every E-row, capping achievable accuracy on US-test at ≈84% from the data side alone. <code>qbank</code> goes further — up to 13 options per row, with 5.49% of rows gold beyond E.</p>
+
+<h4>C.3 The yes/no parser maps hedge text to the wrong class — asymmetrically</h4>
+<p><span class="tag tag-moderate">MODERATE</span> The PubMedQA parser uses substring containment. On representative hedge phrasings ("not necessarily", "probably yes", "it depends", …), 4 / 8 are mapped to "no", 1 / 8 to "yes", and 0 / 8 to "maybe". Hedging models (GPT-4, Claude) emit hedge text at 5–15% on PubMedQA-class tasks in the literature; non-hedging fine-tunes do not. Every hedge therefore moves a frontier-model prediction from "maybe" to "no" while leaving DrugGPT's bare yes/no outputs untouched.</p>
+
+<h4>C.4 The multiple-choice parser discards the formats strong LLMs default to</h4>
+<p><span class="tag tag-moderate">MODERATE</span> The parser extracts the final answer with roughly <code>last_token[0].isalpha()</code>. The forms that survive are bare letters and "Answer: D"-style sentences. The forms that fail are:</p>
+<ul>
+  <li><code>(D)</code> — first character is <code>'('</code>, not alphabetic → empty string returned.</li>
+  <li><code>**A**</code> — first character is <code>'*'</code> → empty string returned.</li>
+  <li><code>The answer is D</code> with no token split — first character is <code>'T'</code> → returns <code>'t'</code>, scored wrong.</li>
+</ul>
+<p>These are the default formats produced by strong instruction-following models (GPT-4, Claude, Gemini) on MedQA prompts. The fine-tuned model whose training set's gold answer is itself a bare letter — DrugGPT — does not emit them and is not penalised.</p>
+
+<h4>C.5 The free-text grader gives free positive credit</h4>
+<p><span class="tag tag-minor">MINOR</span> The free-text grader is substring containment. On US-test, 7 / 1273 (0.55%) rows have the gold answer as a substring of a non-gold option in the same question (free FP credit); 20.7% of gold answers are a single token (highest substring-collision risk against any free-form prediction). Effect bounded by the small fraction.</p>
+
+<h4>C.6 The multilingual claim is partially trivialised at the data level</h4>
+<p><span class="tag tag-moderate">MODERATE</span> In the Taiwanese training set, 17.8% of the nominally Chinese rows have <code>answer_en == answer_zh</code> — the answer was not translated. On those rows, English-token matching is sufficient to score correctly regardless of the question's language; the multilingual generalization claim, as supported by these rows, is correspondingly weaker.</p>
+
+<div class="callout"><b>Combined effect on the paper:</b> Every parser and grader pathology in the released harness pushes accuracy in the <b>same direction</b>: down for any model whose outputs do not look identical to the harness's expected bare-letter format, and neutral for a model fine-tuned on that exact format. The reported gap between DrugGPT and the frontier baselines is therefore not separable from the parser asymmetry on the released artifacts, even before considering the contamination of Axis A.</div>
+
+<h3>Axis D — Ablation invalidity</h3>
+<div class="axis-summary"><b>What it does:</b> The paper's mechanism claims — that specific augmentation steps drive the reported gains — are tested by ablations whose inputs were never actually different.</div>
+
+<h4>D.1 The MetaMap ablation compared two identical inputs</h4>
+<p><span class="tag tag-moderate">MODERATE</span> The paper reports a MetaMap-augmentation ablation, comparing scores with and without MetaMap-enriched data. The "with" and "without" parquet files on the released archive are <b>SHA-256 identical</b> on 3 / 3 US pairs checked — same bytes, same rows, same fields. The two conditions of the ablation are the same file. The ablation cannot have measured the effect it reports, because the inputs to the two arms were not distinguishable.</p>
+
+<h4>D.2 The few-shot exemplar replaces the actual question on one model backend</h4>
+<p><span class="tag tag-major">MAJOR</span> In the "Evidence Generation" stage on the OpenAI backend, the prompt-construction code threads the few-shot-enriched example variable (<code>dsdg_enriched_input</code>) but never the per-row test input (<code>input_data</code>). Structurally the model is asked to answer the hard-coded few-shot vignette every time, not the benchmark question. The magnitude is contingent on whether this code path was the one used for the headline numbers — the weights are not released, so we cannot rerun. If it was, accuracy on novel questions is essentially the exemplar's correctness on the hardcoded vignette: near-zero.</p>
+
+<h4>D.3 Schema drift between files claimed to share a schema</h4>
+<p><span class="tag tag-moderate">MODERATE</span> The MedQA-family parquet files (<code>qbank</code>, <code>test</code>, <code>train</code>) share column names but not column meanings. <code>qbank.answer</code> is a single letter; sibling files' <code>answer</code> column is full answer text. Any code path that concatenates these files by column name silently mixes two different supervision encodings.</p>
+
+<h4>D.4 Split-membership column inverted on the entire Taiwanese training set</h4>
+<p><span class="tag tag-moderate">MODERATE</span> 100.0% of rows in the Taiwanese training file carry <code>meta_info == "taiwanese_test_Q"</code> — the field that elsewhere in the pipeline distinguishes train from test. Any filter that uses <code>meta_info</code> to select test rows pulls the entire training corpus instead.</p>
+
+<h4>D.5 47% letter drift between two files of the same MedQA questions</h4>
+<p><span class="tag tag-major">MAJOR</span> On 1,273 USMLE questions shared between the 4-option and 5-option parquet files, the gold-answer letter <b>disagrees</b> on 600 (47.1%). If the harness drew prompts from one file and gold from the other — and the schema-drift findings above show this is structurally possible — roughly 47% of grading is on a mis-labelled gold key.</p>
+
+<div class="callout"><b>Combined effect on the paper:</b> The mechanism claims that motivate DrugGPT's design — that MetaMap augmentation helps, that evidence generation contributes, that the multi-stage pipeline behaves as its diagrams describe — rest, in the released artifacts, on ablations whose two arms are byte-identical inputs, on a code path that on one model backend structurally never reads the benchmark question, and on data files whose nominal shared schema masks divergent column meanings.</div>
+
+<h3>Axis E — Population sentinels and silent encoding</h3>
+<div class="axis-summary"><b>What it does:</b> Sentinel values and missingness encodings are read as data, inflating sample sizes and silently changing what is being graded.</div>
+
+<ul>
+  <li><span class="tag tag-minor">MINOR</span> <code>UNLABELLED</code> sentinel is encoded as data: 6 hits in <code>pqal</code>, 4,662 hits in <code>pqaa</code> (2.21%). The pipeline scores them as if labelled.</li>
+  <li><span class="tag tag-minor">MINOR</span> 4.5% of the Taiwanese training set references a previous question or a figure that the corpus does not contain — structurally unanswerable rows for any image-blind model.</li>
+  <li><span class="tag tag-minor">MINOR</span> 2.7% of "English" Taiwanese rows still contain CJK token strings (translation step skipped them).</li>
+  <li><span class="tag tag-minor">MINOR</span> 0.5% of one training file has duplicate primary keys (114 affected rows over 51 keys).</li>
+</ul>
+
+<p>None of these alone meaningfully shifts a headline number; together they place the noise floor of the released supervision a few points above zero.</p>
+
+<h2>3. Affected claims, mapped</h2>
+
+<table>
+<thead>
+<tr><th>Paper claim</th><th>Headline number</th><th>Baseline comparison</th><th>Axes that affect it</th><th>Net direction</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>USMLE / MedQA accuracy</td>
+  <td>88.2%</td>
+  <td>Med-PaLM&nbsp;2 86.5 · GPT-4 83.5</td>
+  <td>A (100% leakage), B (10k ≠ 1,273), C.1 (0.31% ceiling), C.2 (option E), C.4 (parser), D.5 (47% letter drift)</td>
+  <td>Comparison not supported by released artifacts</td>
+</tr>
+<tr>
+  <td>PubMedQA accuracy</td>
+  <td>88.0%</td>
+  <td>Med-PaLM&nbsp;2 79.2</td>
+  <td>A.2 (100% PMID leakage), B.1 (10k pqaa vs 500 pqal), B.1 (closed-book vs open-book), B.2 (binary vs 3-class), C.3 (hedge parser)</td>
+  <td>Comparison not supported by released artifacts</td>
+</tr>
+<tr>
+  <td>Drug–Drug Interaction accuracy</td>
+  <td>97.1%</td>
+  <td>GPT-4 62.8</td>
+  <td>B.4 (binary synthesised vs 4-class real)</td>
+  <td>Different task on released artifacts</td>
+</tr>
+<tr>
+  <td>Multilingual generalisation (Chinese, Taiwanese)</td>
+  <td>Per-language accuracies</td>
+  <td>Implicit cross-lingual</td>
+  <td>A.3 (Mainland leakage), C.6 (17.8% untranslated), D.4 (Taiwanese train/test marker inverted)</td>
+  <td>Effect overstated by the released artifacts</td>
+</tr>
+<tr>
+  <td>MetaMap-augmentation ablation</td>
+  <td>Δ accuracy</td>
+  <td>vs no-MetaMap arm</td>
+  <td>D.1 (byte-identical inputs)</td>
+  <td>Ablation arms not distinguishable in released files</td>
+</tr>
+<tr>
+  <td>Evidence-Generation pipeline contribution</td>
+  <td>Stage-wise gain</td>
+  <td>vs without-EG</td>
+  <td>D.2 (question not threaded on one backend)</td>
+  <td>Not reproducible from released code path</td>
+</tr>
+</tbody>
+</table>
+
+<h2>4. Why the axes matter jointly, not individually</h2>
+
+<p>A natural reading of any single axis is contingent: <i>perhaps the contaminated file was not the one used to train; perhaps the released scoring code was not the path that produced the number; perhaps the parser asymmetry is offset by something else.</i> The joint structure of the findings constrains the plausible interpretations:</p>
+
+<ul>
+  <li>If the released code path was the one used for the headline numbers, the C.1 ceiling of 0.31% is incompatible with the reported 88.2% on the released data.</li>
+  <li>If a different code path was used, that path's behaviour is not part of the release and cannot be audited from public materials; whichever path it was, it was not the one tested by the released ablations (Axis D).</li>
+  <li>If the headline numbers are credited as valid in spite of Axis C, the Axis A contamination means they are upper-bounded by memorization rather than by learning.</li>
+  <li>If the contamination is set aside, the Axis B redefinitions mean the numbers are still not on the same task or population as the baselines they are placed next to.</li>
+</ul>
+
+<p>Each axis constrains one of the available readings. The conjunction is not a chain of independent doubts — it is a methodological envelope around the set of interpretations under which the released artifacts could constitute reproducible support for the reported comparisons.</p>
+
+<h2>5. What this audit does not claim</h2>
+
+<ul>
+  <li>It does not evaluate the underlying model. The weights are not part of the public release, so the model itself has not been re-run.</li>
+  <li>It does not infer intent. Every finding is described in terms of what the code and data <i>do</i>, not in terms of why.</li>
+  <li>It does not assess the intrinsic merit of the proposed architecture. It assesses whether the released artifacts constitute reproducible support for the numerical comparisons reported in the paper.</li>
+</ul>
+
+<h2>6. Summary</h2>
+
+<p>Across forty-six independent observations grouped onto five orthogonal methodological validity axes, the released code and data for DrugGPT do not, in their current form, support the comparisons reported in the paper's headline table. Specifically:</p>
+
+<ol>
+  <li><b>In the released artifacts, the MedQA and PubMedQA-L test sets are contained at 100% coverage</b> in the files the released harness loads for training, with the correct gold answer attached.</li>
+  <li><b>The reported numbers are computed on different problems</b> than the external baselines they are placed next to — different sample sizes, different class structures, closed-book vs open-book, binary vs multi-class.</li>
+  <li><b>The released grading code has a mechanical ceiling of 0.31% on the canonical MedQA test</b> and contains asymmetric parser pathologies that downgrade frontier baselines.</li>
+  <li><b>The mechanism ablations were run on byte-identical inputs</b>, and at least one stage of the pipeline structurally never reads the benchmark question on one model backend.</li>
+</ol>
+
+<p>These issues are not corrigible by reanalysis of the released artifacts in their current form: the artifacts are themselves the object of the audit. A defensible re-evaluation of the proposed method would require:</p>
+
+<ul>
+  <li>A publicly specified held-out split with row-level decontamination checks against every released training file.</li>
+  <li>A scoring harness whose mechanical ceiling on the evaluated population exceeds the reported accuracy.</li>
+  <li>Benchmark definitions matching those of the cited baselines (canonical test sizes, the same class structures, open- vs closed-book parity).</li>
+  <li>Ablation inputs whose file hashes and row counts differ in the intended way.</li>
+  <li>Release of the exact preprocessing and evaluation path used to produce the headline table.</li>
+</ul>
+
+<p>None of these conditions are met by the current public release. Any one of them being established by the authors would resolve, in part or in whole, the corresponding axis of this audit.</p>
+
+<hr>
+<footer>
+Compiled from 46 independent findings, grouped here into five failure axes. Per-finding evidence — exact file paths, line numbers, row counts, byte hashes, and the deterministic checks that produced them — is available in the audit's verifier verdicts, novelty results, and impact-quantification artefacts.
+</footer>
+
+</body>
+</html>
