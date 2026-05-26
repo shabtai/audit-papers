@@ -90,11 +90,9 @@
 
 <h2>1. How the audit was carried out</h2>
 
-<p>Each released data file (parquet, CSV, JSONL) was passed through a semantic-enrichment process that derives, per column, the <i>meaning</i> of the field (canonical entity, units, value space, role within the table), and per table the <i>grain</i> (one row = one what), <i>join keys</i>, and <i>relationships</i> with sibling tables. The same process flags structural pathologies — train/test set membership, primary-key duplicates, sentinel-as-data encodings, schema drift across files claimed to share a schema, and so on.</p>
+<p>The audit was carried out using <a href="https://www.natural-joints.com/">natural-joints</a> data layers — semantic enrichments that give an agent a reliable, machine-readable understanding of what each column, table, and file in a dataset actually means. The enriched view of the released DrugGPT data was reconciled against the released harness code and the paper's numerical claims; a finding is recorded only where those three sources are in tension.</p>
 
-<p>The enriched view of the data was then reconciled against (a)&nbsp;the released harness code, line by line at every scoring, parsing, and dataset-loading site, and (b)&nbsp;the numerical claims in the paper. A finding is recorded only where one of these three sources is in tension with another — i.e. where the paper's claim, the code's behaviour, and the data's actual content cannot all hold simultaneously.</p>
-
-<p>This document presents only the findings that affect the paper's <b>methodological claims</b>. Reproducibility-only issues (missing artefacts, broken hosting, absent preprocessing scripts) are out of scope here — they prevent re-running the experiment but do not themselves shift a reported number.</p>
+<p>Scope is restricted to findings material to the paper's <b>methodological claims</b>. Pure reproducibility issues — missing files, broken hosting, absent preprocessing — are out of scope here: they block re-running the experiment but do not themselves shift a reported number.</p>
 
 <h2>2. The five methodological validity axes</h2>
 
