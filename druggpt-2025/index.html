@@ -85,7 +85,8 @@
 <h2>TL;DR</h2>
 <p>The paper's three flagship comparisons — <b>88.2% on USMLE/MedQA</b> vs Med-PaLM&nbsp;2 (86.5) and GPT-4 (83.5); <b>88.0% on PubMedQA</b> vs Med-PaLM&nbsp;2 (79.2); <b>97.1% on Drug–Drug Interaction</b> vs GPT-4 (62.8) — are not supported by the released code and data as currently available. Five independent methodological validity axes converge on the same conclusion: every headline number is computed on <b>a different problem</b> than the baseline it is compared against, on <b>contaminated test populations</b> in which every test row appears verbatim in the file the released harness loads as training data, and with <b>scoring code</b> that asymmetrically penalises any model not fine-tuned to the released harness's bare-letter output format.</p>
 <p>The strongest single observation is structural: in the released artifacts, the file loaded as training data contains <b>100% of every MedQA test set</b> (US, Mainland, Taiwan) with the correct answer attached. A central structural inconsistency is that the released scoring code, on the released data, has a mechanical accuracy ceiling of <b>0.31%</b> on the US-MedQA test split — so whatever code path produced 88.2% is <b>not reproduced by the released evaluation path</b>.</p>
-<p>Individually any one of these findings would be a serious methodological concern. Their combined effect is that the cross-paper accuracy comparisons in Table 1, and the multilingual and ablation claims that depend on them, are <b>not interpretable as evidence of the proposed method's effectiveness from the released artifacts alone</b>. These findings could be resolved by identifying an alternative evaluation path, unreleased preprocessing step, or held-out split that exactly reproduces the reported numbers and preserves comparability to the cited baselines.</p>
+<p>Individually any one of these findings would be a serious methodological concern. Their combined effect is that the cross-paper accuracy comparisons in Table 1, and the multilingual and ablation claims that depend on them, are <b>not interpretable as evidence of the proposed method's effectiveness from the released artifacts alone</b>.</p>
+<p>An obvious objection is that a file is missing — an unreleased preprocessing step, evaluator, or held-out split exists that would close the gap. §5 grants that defence in its strongest form and shows that the smallest missing file that reconciles the released grader with the reported value is also the one under which the value reduces to memorization, while the candidates that would preserve interpretability require artifacts whose existence is not evidenced by the release.</p>
 </div>
 
 <h2>1. How the audit was carried out</h2>
@@ -272,7 +273,36 @@
 
 <p>Each axis constrains one of the available readings. The conjunction is not a chain of independent doubts — it is a methodological envelope around the set of interpretations under which the released artifacts could constitute reproducible support for the reported comparisons.</p>
 
-<h2>5. What this audit does not claim</h2>
+<h2>5. The most charitable reading: could a missing file reconcile the numbers?</h2>
+
+<p>The argument so far rests on what was released. The natural defence is that the release is incomplete: a preprocessing step, an evaluator variant, or a held-out split exists somewhere off-repository, and that artifact is what actually produced the reported numbers. This section grants that defence in its strongest form and asks what such a missing file would have to do.</p>
+
+<p>The release contains the inference code, the parser, the grader, and a one-page list of links to the raw external datasets. The CSV files the harness actually loads — the file paths in the evaluation notebook are empty strings — are gated behind a contact-the-authors request. No preprocessing script is shipped; the procedure for turning the raw downloads into the evaluated CSVs is described in three prose lines. The model weights are not in the release at all. A missing artifact is therefore not a hypothetical: at least the preprocessing code and the evaluated CSVs are not part of the public release.</p>
+
+<p>For an unreleased artifact to make the 88.2% USMLE/MedQA figure both reproducible by the released grader and interpretable as evidence of MedQA capability rather than memorization, that artifact would have to satisfy three constraints simultaneously:</p>
+
+<ol>
+  <li><b>It must make the grader mechanically able to score correct answers.</b> The released grader compares the model's parsed single-letter prediction to the gold <code>answer</code> field via word-containment or initials equality. On the canonical MedQA test file, where <code>answer</code> is the full answer text, this returns <i>false</i> on 99.7% of rows by construction. A missing artifact would have to deliver an <code>answer</code> column that is shaped as a letter rather than as text.</li>
+  <li><b>It must produce a test population not contained in the training file.</b> The released file the harness loads for training contains every row of every MedQA test split — US, Mainland, Taiwan — with the correct gold answer attached. A missing artifact would have to produce a held-out test split none of whose rows appear in that file.</li>
+  <li><b>It must match the canonical benchmark.</b> The cited baselines (Med-PaLM&nbsp;2, GPT-4) report on the canonical MedQA test (1,273 US rows, 5 options). A missing artifact would have to evaluate on that same population, not on a custom redefinition with a different sample count and a different class structure.</li>
+</ol>
+
+<p>The three plausible candidates for what the missing artifact could be satisfy strict subsets of those constraints:</p>
+
+<h4>Candidate 1 — An unreleased preprocessing step that converts answer-text to answer-letter</h4>
+<p>The smallest file that would let the released grader return non-trivial accuracy on MedQA is a step that, for each canonical test row, replaces the text answer with the matching option letter. This satisfies constraint (1). It leaves (2) untouched: the underlying rows are the same rows that appear in the released training file with the answer attached. The reported accuracy under this candidate is mechanically reachable but is the model's recall rate over questions whose answers it had been given, not a measurement of held-out capability. This is the only candidate under which the released grader can produce the reported number, and it is also the candidate under which the reported number does not mean what the paper says it means.</p>
+
+<h4>Candidate 2 — An unreleased held-out test split disjoint from the released training file</h4>
+<p>This would satisfy constraint (2). It would still need to satisfy (1) and (3). And it would have to be a split that the audit's row-level overlap checks against the released training file did not find — which would mean either it has never been distributed (so no third party can verify it) or it has been distributed in a form the released harness does not load. Under either form, the public artifacts do not contain the evidence base the comparison rests on, and the comparison to the cited baselines cannot be re-run by a reader.</p>
+
+<h4>Candidate 3 — An unreleased evaluator with different parsing and grading logic</h4>
+<p>This would mean the released grader, the released parser, and the released ablation pipeline are not the components that produced the headline numbers. The released ablations are, by construction, an instrument that exercises the released grading path. If the headline numbers came from a different evaluator, those ablations are measuring a system other than the one the table reports — which is itself a methodological issue (the ablation chapter of this audit), independent of the accuracy values.</p>
+
+<p>No candidate satisfies all three constraints. The candidate that most cleanly reconciles the released code with the reported value (Candidate 1) is also the candidate under which the reported value reduces to memorization, because the test rows it scores against are present, with answers, in the file the harness loads as training. The candidates that would preserve interpretability (2 and 3) require artifacts whose existence is not evidenced by the release and which, if they exist, place the audit's object — reproducible support for the comparison — outside the public materials.</p>
+
+<p>The steel-manned defence therefore does not rescue the headline comparison. It clarifies where the evidence would have to come from to do so: a publicly distributed preprocessing step that produces letter-shaped gold answers <i>and</i> a publicly distributed held-out test population <i>and</i> a demonstration that the released ablations were run against the same evaluator that produced the table. None of those three is currently part of the release.</p>
+
+<h2>6. What this audit does not claim</h2>
 
 <ul>
   <li>It does not evaluate the underlying model. The weights are not part of the public release, so the model itself has not been re-run.</li>
@@ -280,7 +310,7 @@
   <li>It does not assess the intrinsic merit of the proposed architecture. It assesses whether the released artifacts constitute reproducible support for the numerical comparisons reported in the paper.</li>
 </ul>
 
-<h2>6. Summary</h2>
+<h2>7. Summary</h2>
 
 <p>Across forty-five independent observations grouped onto five orthogonal methodological validity axes, the released code and data for DrugGPT do not, in their current form, support the comparisons reported in the paper's headline table. Specifically:</p>
 
