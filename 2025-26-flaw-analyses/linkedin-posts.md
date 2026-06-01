@@ -8,50 +8,52 @@ Two posts, one per paper. Each: hook → most-impressive example with technical 
 
 **Paper:** *"Spatial signatures for predicting immunotherapy outcomes using multi-omics in non-small cell lung cancer"* — Aung et al., *Nat Genet* 2025. https://doi.org/10.1038/s41588-025-02351-7 (PMID 41073787)
 
-A one-character bug in this published Nature Genetics paper vacates two of its headline statistical claims.
+A published Nature Genetics paper announces 8 hazard ratios across 3 cohorts as evidence that spatial signatures predict NSCLC immunotherapy response. The paper's own released code does not produce the headline numbers.
 
-The script: `lasso_cox_cellFract_tumor_resistanceLASSO_model_PFS.R`
-
-The line:
+The most direct contradiction: `validate_finalSigs_pStroma_RNA.R` line 157, the script that validates the response signature on the UQ cohort, contains this literal label inside its plotting code:
 
 ```r
-y_df = Surv(as.numeric(cellFrac$PFS_5Years_months, cellFrac$PFS_5Years_Index))
+label = "HR = 1.1 (0.43-3) \n p = 0.6 (Log-Rank-1-sided) \n cutpoint = tertile"
 ```
 
-This looks like it builds `Surv(time, event)`. It doesn't. Two R semantic quirks compose:
+HR = 1.1. p = 0.6. The 95% CI spans 0.43 to 3.0, well across the null.
 
-1. `as.numeric()` silently drops extra positional arguments. `as.numeric(time, event)` evaluates to `as.numeric(time)`. The event-status column is gone before `Surv()` ever sees it.
+The paper's abstract reports HR = 0.38 for the same comparison.
 
-2. `Surv(time)` with one argument defaults to "all events observed". Every patient gets `status = 1` — no censoring, no warning, no error.
+Both numbers come from the same script run by the same author on the same deposited data. The script self-documents one result. The abstract claims another. There is no path in the released artifact from HR=0.38 to HR=1.1 except by running additional analysis that wasn't committed.
 
-The Cox model treats every patient as having had a progression event, regardless of who was actually censored.
+This is one of 12 MAJOR-impact findings produced by an independent audit using a 6-agent code/honesty/facts review pipeline. Other findings in the same paper:
 
-When the bug is corrected (one closing parenthesis):
-
-- **Resistance signature, Yale cohort**: HR 3.8 (p=0.004) → 2.58 (p=0.053). **Significance lost.**
-- **Response signature, Yale cohort**: HR 0.4 (p=0.019) → 0.30 (p=0.057). **Significance lost.**
-
-The pattern appears 11 times in the cell-fraction scripts; the same author uses the correct `Surv(t, e)` form in 6 other scripts in the same repo. It's a copy-paste artifact, not a systemic understanding gap — but it's exactly where the abstract's cell-type signatures are derived and validated.
+- **5 of 9 abstract HRs collapse to non-significance** under bug correction, two-sided p-value testing, or end-to-end reproduction.
+- **A one-character bug** at 11 R script sites (`Surv(as.numeric(time, event))`) silently drops the censoring vector — making the Cox model treat every patient as a progression event. Correcting this single bug moves Yale tumor HR 3.8 → 2.2 and Yale stroma HR 0.4 → 0.30; both lose significance.
+- **Circular validation**: the cell-to-gene signature's "good models" are filtered by their held-out test-cohort HR before being assembled into the final signature. `good_models = which((hzrs$x)>=1.5)`. The validation result is the model-selection criterion.
+- **The Greek validation cohort (n=79) has zero code in the repository.** The third "independent" cohort exists only in manuscript text.
+- **`lower.limits = 0` in LASSO forces the resistance signature to be non-negative; `upper.limits = 0` forces the response signature to be non-positive.** The direction of the signature is set by a keyword argument, not by the data.
+- **One-sided p-values for "validation", two-sided for "discovery"** — direction picked post-hoc by the sign of the observed HR. Both abstract validation p-values (0.05, 0.036) become 0.10 and 0.072 when correctly two-sided.
+- **Reading the released code shows it tries to load coefficient files that were never committed.** The headline cell-to-gene HR=5.1 is computed off `final_coeffs_..._0p1.csv` and `hzrs_..._CW.csv`, neither of which exists anywhere in the repository.
 
 ---
 
 **Plain language for non-statisticians:**
 
-Clinical survival studies track how long patients survive without their cancer progressing. Some patients have a known progression event during the study. Others leave the study early or remain progression-free at study end — those patients are called "censored." A correct analysis tells the model: *for censored patients, we know they survived AT LEAST this long; we don't know whether they would have progressed later.*
+Clinical biomarker studies follow this shape: *(1) you find some pattern in a discovery dataset; (2) you check that the same pattern works in a separate validation dataset; (3) if it works in both, the biomarker is real.* The paper presents 3 cohorts (Yale, UQ, Greek) supposedly walking through this shape.
 
-The bug tells the model the opposite: *every patient progressed at exactly the time their record ended.* This treats people who were just being followed up as if they all had bad outcomes.
+What the audit found:
 
-When you do this, the difference between "patients flagged as resistant by the biomarker" and "patients flagged as sensitive" looks bigger and statistically cleaner than it really is. Fixing the bug shrinks both gaps to within the noise — meaning the data doesn't actually let you tell the two groups apart with confidence.
+- The "discovery" pattern only reaches statistical significance because of a coding bug that treats every patient as if they had a bad outcome. Fix the bug and the pattern is within the noise.
+- The "validation" code, when actually run, gives a number that says the signature does not work in the validation cohort. The abstract quotes a different number that nothing in the released code produces.
+- The third cohort isn't in the released code at all.
+- The genes that make up the final signature are picked from analysis runs that already showed the desired result, then "validated" against the same dataset that picked them.
 
-In a clinical context: this is the difference between "we have evidence the biomarker predicts immunotherapy response" and "we don't have enough evidence yet." The paper claims the former. The corrected analysis only supports the latter.
+A faithful description would be: *we found a tentative pattern in 32 patients at Yale; it doesn't transfer to UQ when you run our actual code; we cannot show our work for Greece.* The paper's description, in contrast, is "three-cohort validation of two complementary spatial signatures."
 
 ---
 
-**One-line summary for this audit:** *One copy-paste typo in `Surv()` discards censoring across 11 call sites and silently removes statistical significance from two of the paper's named Yale-cohort hazard ratios.*
+**One-line summary for this audit:** *Of 8 hazard ratios named in the abstract, at least 5 either collapse on bug correction, are unreproducible from the public code+data, or are products of post-hoc statistical choices. 37 total findings (1 published directly + 36 from the multi-agent audit), all novel — zero prior public reports.*
 
-Full report (with reproduction code): https://github.com/shabtai/2025-26-flaw-analyses/blob/main/aung2025/flaws.html
+Full report (with reproduction code per finding): https://shabtai.github.io/audit-papers/2025-26-flaw-analyses/aung2025/flaws.html
 
-Audit conducted with natural-joints (https://www.natural-joints.com/) — independent code & data audits of published research papers using semantic data-layer enrichment plus multi-agent code/honesty/facts review.
+Audit conducted with natural-joints (https://www.natural-joints.com/) — direct code review plus a 6-agent code/honesty/facts review pipeline on the deposited code+data. Semantic enrichment was attempted but did not complete on this paper's gene-expression tables, so it did not contribute to any finding here — the multi-agent track did the work.
 
 #Bioinformatics #Reproducibility #DataScience #StatisticalRigor #ScientificIntegrity
 
