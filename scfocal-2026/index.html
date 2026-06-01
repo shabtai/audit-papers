@@ -61,10 +61,9 @@ footer { color: var(--muted); font-size: 0.85em; margin-top: 40px; padding-top: 
 <header>
 <h1>scFOCAL — real bugs that <em>cannot</em> be explained by "the wrong data was uploaded"</h1>
 <div class="sub">
-  Filter applied to the 9-agent audit of Suter et al., <em>Nat Commun</em> 2026 (s41467-025-67783-5).
-  Keep only findings where the deposit-only theory ("they uploaded a curated subset; the real analysis is fine")
-  is structurally implausible — because either the bug lives in the deposited <em>code</em> regardless of input data,
-  or the published numbers themselves match what the buggy code would produce.<br>
+  Paper: <a href="https://www.nature.com/articles/s41467-025-67783-5" target="_blank" rel="noopener">Suter et al., "Drug and single-cell gene expression integration identifies sensitive and resistant glioblastoma cell populations", <em>Nat Commun</em> 2026</a> · DOI <a href="https://doi.org/10.1038/s41467-025-67783-5" target="_blank" rel="noopener">10.1038/s41467-025-67783-5</a> · open access at <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12780015/" target="_blank" rel="noopener">PMC12780015</a>.<br>
+  Code repos audited: <a href="https://github.com/AyadLab/scFOCAL" target="_blank" rel="noopener">AyadLab/scFOCAL</a> + <a href="https://github.com/AyadLab/scFOCAL-dataProcessing" target="_blank" rel="noopener">AyadLab/scFOCAL-dataProcessing</a>.<br><br>
+  Filter applied to the 9-agent audit. Keep only findings where the deposit-only theory ("they uploaded a curated subset; the real analysis is fine") is structurally implausible — because either the bug lives in the deposited <em>code</em> regardless of input data, or the published numbers themselves match what the buggy code would produce.<br>
   <strong>13 of 33 findings survive this filter</strong> (8 Tier-1 iron-clad, 5 Tier-2 deposit-only fails the arithmetic test).
 </div>
 </header>
@@ -828,13 +827,18 @@ the figure is supposed to summarize.
 <!-- ============================ FOOTER ============================ -->
 
 <footer>
-<p>Generated from audit run <code>audit-1780255732</code>. Full report at
-<code>data/.audit/1780255732/README.md</code>; structured findings at <code>findings.json</code>;
-per-agent raw reports at <code>raw/</code>.</p>
 <p>Of the 33 findings in the full audit, 13 (the 8 Tier-1 + 5 Tier-2 above) cannot be excused by
 "the wrong data was uploaded." The remaining 20 either (a) really could be explained by deposit-only issues,
 (b) are deposit-only by definition (e.g. F8: CT-179 GBM8 raw not deposited), (c) are
-enrichment-internal corrections without paper impact, or (d) are cosmetic.</p>
+enrichment-internal corrections without paper impact, or (d) are cosmetic.
+Full 33-finding report at <a href="report.html">report.html</a>; structured findings at
+<a href="findings.json">findings.json</a>; methodology at
+<a href="METHODOLOGY_demo_data_defense.md">METHODOLOGY_demo_data_defense.md</a>;
+per-finding demo-data validation at <a href="DEMO_DATA_DEFENSE_CHECK.md">DEMO_DATA_DEFENSE_CHECK.md</a>.</p>
+
+<p style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border); text-align:center;">
+Audited with <a href="https://www.natural-joints.com/" target="_blank" rel="noopener">natural-joints.com</a> — independent, multi-agent LLM-driven code &amp; data reproducibility audits of published research papers.
+</p>
 </footer>
 
 </body></html>
