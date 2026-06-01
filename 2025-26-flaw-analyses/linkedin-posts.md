@@ -62,7 +62,7 @@ Audit conducted with natural-joints (https://www.natural-joints.com/) — indepe
 
 **Paper:** *"Predicting resistance to chemotherapy using chromosomal instability signatures"* — Thompson et al., *Nat Genet* 2025. https://doi.org/10.1038/s41588-025-02233-y (PMID 40551015)
 
-A published Nature Genetics paper tests an "anthracycline-resistance biomarker" in a cohort where 87% of the patients also received platinum chemotherapy — and the biomarker's training labels were derived from platinum-response priors. The platinum confounder is not adjusted for. So the validation result is consistent with the biomarker being a repackaged platinum-response classifier.
+A published Nature Genetics paper tests an "anthracycline-resistance biomarker" in a cohort where 87% of the patients also received platinum chemotherapy, and the biomarker's training labels were derived from platinum-response priors. The platinum cotherapy is not adjusted for in the survival model. **The analysis does not rule out a platinum-response confounder** — it does not separate "this biomarker predicts anthracycline response" from "this biomarker predicts platinum response, observed in a platinum-co-treated cohort." Both interpretations are compatible with the published result.
 
 The data (OV04 doxorubicin pilot study, Fig 2c, n=30):
 
@@ -88,7 +88,7 @@ The paper's Methods explicitly describes how the training labels for the anthrac
 
 So the biomarker was trained against labels derived from platinum response in patient-derived models, then validated in a cohort where 87% of patients also received platinum cotherapy, with that cotherapy not adjusted for in the survival model.
 
-The 4 patients who received doxorubicin without platinum are too few to support a clean restricted analysis. The platinum-adjusted analysis is not done. The headline finding sits on top of an uncorrected confounder that's stronger than any covariate in the Cox formula.
+The 4 patients who received doxorubicin without platinum are too few for a clean restricted analysis. A platinum-adjusted Cox is not reported. Whether the biomarker tracks anthracycline response specifically — separately from platinum response — is therefore not established by this experiment. It might. The experimental design just doesn't tell us either way.
 
 **This isn't a typo defense.** The plat_cotherapy values are in the deposit; the Cox model is in the committed script; the literature priors for label assignment are in the paper Methods. All three are intact and all three line up the same way: an anthracycline biomarker trained on platinum-response labels and validated in a platinum-co-treated cohort.
 
@@ -112,11 +112,11 @@ In a clinical context: imagine testing a "blood-pressure medication response pre
 
 A clean validation would be: take only the 4 patients who got doxorubicin without platinum and check if the biomarker still separates them. But 4 patients is far too small. The data necessary to disentangle the two effects isn't in this cohort.
 
-The honest read of Fig 2c is: *the biomarker predicts outcome in a cohort where most patients received platinum cotherapy that we didn't adjust for, using a biomarker whose labels were assigned from platinum response. Whether the biomarker tracks anthracycline response specifically — separately from platinum — is not established by this experiment.*
+The honest read of Fig 2c is: *the biomarker predicts outcome in a cohort where most patients received platinum cotherapy that we didn't adjust for, using a biomarker whose labels were assigned from platinum response. **The analysis does not rule out a platinum-response confounder** — it does not separate anthracycline-specific from platinum-cotherapy effects. The biomarker may genuinely predict anthracycline response, or it may primarily reflect platinum response. The data in Fig 2c does not let us tell.*
 
 ---
 
-**One-line summary for this audit:** *Of 25 audit findings (all novel, none previously reported), the most concerning is structural: the anthracycline biomarker is trained on platinum-response-derived labels and validated in a 87%-platinum-co-treated cohort with cotherapy unadjusted; alongside this — 5 of 9 main headline hazard ratios lose statistical significance under proper multiple-testing correction, the OV04 platinum pilot HR collapses to non-significance when a 7-patient hand-coded covariate is removed, treating RECIST-confirmed cancer progression as "censored" instead of as an event shifts two of four phase-3 HRs by more than 30%, and patients with all-missing biomarker values silently receive deterministic prediction labels based on which file they were stored in.*
+**One-line summary for this audit:** *Of 25 audit findings (all novel, none previously reported), the most consequential is methodological: the anthracycline biomarker's training labels were derived from platinum response and its validation cohort is 87% platinum-co-treated with cotherapy unadjusted — the analysis does not rule out a platinum-response confounder. Alongside this — 5 of 9 main headline hazard ratios lose statistical significance under proper multiple-testing correction, the OV04 platinum pilot HR collapses to non-significance when a 7-patient hand-coded covariate is removed, treating RECIST-confirmed cancer progression as "censored" instead of as an event shifts two of four phase-3 HRs by more than 30%, and patients with all-missing biomarker values silently receive deterministic prediction labels based on which file they were stored in.*
 
 Full report (with reproduction R code per finding): https://shabtai.github.io/audit-papers/2025-26-flaw-analyses/thompson2025/flaws.html
 
