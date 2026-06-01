@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>2025–26 Bioinformatics Paper Flaw Analyses</title>
+<script data-goatcounter="https://natural-joints.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 980px; margin: 2em auto; padding: 0 1em; color: #1f1f1f; line-height: 1.5; }
+  h1 { border-bottom: 2px solid #003366; padding-bottom: 0.3em; }
+  h2 { color: #003366; margin-top: 1.6em; }
+  a { color: #003366; }
+  .paper { border-left: 4px solid #003366; padding: 0.5em 1em; margin: 1em 0; background: #f7f9fc; }
+  .paper.broken { border-left-color: #b30000; }
+  .paper.partial { border-left-color: #d97706; }
+  .verdict { display: inline-block; padding: 2px 9px; border-radius: 3px; font-size: 0.82em; font-weight: 700; color: white; margin-right: 0.4em; }
+  .verdict-BROKEN { background: #b30000; }
+  .verdict-PARTIAL { background: #d97706; }
+  .meta { color: #555; font-size: 0.92em; }
+  ul { padding-left: 1.4em; }
+  .footnote { font-size: 0.86em; color: #555; margin-top: 2.5em; border-top: 1px dashed #ccc; padding-top: 0.8em; }
+</style>
+</head>
+<body>
+
+<h1>2025–26 Bioinformatics Paper Flaw Analyses</h1>
+<p>This audit was conducted using <a href="https://www.natural-joints.com/">natural-joints</a> — independent code &amp; data audits of published research papers, applying semantic data-layer enrichment plus multi-agent code/honesty/facts review to detect findings where the script source, the deposited data, and the paper text are in tension.</p>
+
+<p>This repository collects flaw analyses of recent (2025–26) high-profile bioinformatics papers where the audit surfaces convincing real bugs — bugs in the committed code or contradictions between paper text and what the public artifacts show. The audits restrict to findings where "the public deposit is a subset, not the production cohort" is not a credible defense, because the finding lives in the script source, in the paper text itself, or in methodological choices independent of which patients are in the data.</p>
+
+<div style="background:#ffe5e5; border:1px solid #b30000; border-radius:4px; padding:0.8em 1em; margin:1em 0;">
+<strong>★ Featured:</strong> <a href="top-bugs.html"><strong>The top 4 most impressive bugs across both papers</strong></a> — detailed deep-dive on the bugs that combine highest impact with most striking root-cause structure.
+<ol style="margin: 0.5em 0;">
+<li>Aung's <code>Surv(as.numeric)</code> typo vacates 2 Yale headlines (HR 3.8→2.58, HR 0.4→0.30; both lose significance).</li>
+<li>Thompson's Fig 2c HR=20.020 differs from the committed-code value by 17× (recomputed HR=344).</li>
+<li>RECIST coded as <code>censoring=0</code> shifts 2 of 4 phase-3 HRs by &gt;30% (breast-taxane +66%, breast-anthra −36%).</li>
+<li>Thompson's OV04 platinum HR=2.34 (Fig 2a) collapses to non-significance when the script-injected hand-coded <code>maintenance</code> covariate (7 literal patient IDs in committed source) is dropped.</li>
+</ol>
+</div>
+
+<h2>Papers audited</h2>
+
+<div class="paper partial">
+<p><span class="verdict verdict-PARTIAL">PARTIAL</span> <strong>Thompson et al., <em>Nature Genetics</em> 2025</strong> — "Predicting resistance to chemotherapy using chromosomal instability signatures."</p>
+<p class="meta">DOI <a href="https://doi.org/10.1038/s41588-025-02233-y">10.1038/s41588-025-02233-y</a> · PMID 40551015 · GitHub <a href="https://github.com/macintyrelab/Thompson2025_ChemoResistancePrediction">macintyrelab/Thompson2025_ChemoResistancePrediction</a></p>
+<p><strong>Verdict.</strong> Headline hazard ratios reproduce from the committed code+data; the criticisms are about <em>what those numbers mean</em>.</p>
+<ul>
+<li>25 verified findings, all novel as of audit date.</li>
+<li>5 MAJOR-impact findings, including a published HR=20.020 (Fig 2c) not derivable from committed code (the script pastes the triple instead of computing it); 5 of 9 main HRs vacate under Bonferroni; RECIST progression coded as <code>censoring=0</code> shifts breast taxane HR by +66%, breast anthra HR by −36%; NaN-CX patients get deterministic prediction labels by file membership.</li>
+<li>10 MODERATE findings, including the abstract's "stratified Cox by age" applying to only 1 of 6 headline cohorts; IPTW achieving balance for only 2 of 4 cohorts; Capecitabine omitted from named SoC (70%+ of control arm); Olaparib named in Methods but has 0 occurrences in cohort.</li>
+</ul>
+<p><a href="thompson2025/flaws.html"><strong>Full Thompson audit →</strong></a></p>
+</div>
+
+<div class="paper broken">
+<p><span class="verdict verdict-BROKEN">BREAKS HEADLINE</span> <strong>Aung et al., <em>Nature Genetics</em> 2025</strong> — "Spatial signatures for predicting immunotherapy outcomes using multi-omics in non-small cell lung cancer."</p>
+<p class="meta">DOI <a href="https://doi.org/10.1038/s41588-025-02351-7">10.1038/s41588-025-02351-7</a> · PMID 41073787 · GitHub <a href="https://github.com/tznaung/NSCLC_SpatialOmics">tznaung/NSCLC_SpatialOmics</a></p>
+<p><strong>Verdict.</strong> Two of the Yale-cohort headline hazard ratios collapse from "significant" to "not significant" when a one-character bug in the committed R source is corrected.</p>
+<ul>
+<li>Bug: <code>Surv(as.numeric(time, event))</code> — <code>as.numeric()</code> silently drops the event indicator, <code>Surv()</code> defaults to "all events observed." Repeated 11 times across cell-fraction scripts.</li>
+<li>Yale resistance signature: paper HR 3.8 (p=0.004) → corrected HR 2.58 (p=0.053). Significance lost.</li>
+<li>Yale response signature: paper HR 0.4 (p=0.019) → corrected HR 0.30 (p=0.057). Significance lost.</li>
+<li>Bug surface confined to cell-type fraction scripts; gene-signature (cell-to-gene) HRs use correct <code>Surv(t, e)</code> and are not refuted.</li>
+</ul>
+<p><a href="aung2025/flaws.html"><strong>Full Aung audit →</strong></a></p>
+</div>
+
+<h2>Methodology</h2>
+<p>Each audit was performed by a 9-agent automated pipeline: 3 blind auditors (code / honesty / facts) working from a clean copy of the data with no semantic enrichment; 3 enriched auditors with full schema enrichment; then 3 summary agents (verifier, novelty-checker, impact-runner). All findings shown were either (a) verified by independent re-running of the published code against the deposited data, (b) verified by reading the paper text against the script source, or (c) verified by structural proof from code + data values.</p>
+
+<p>Findings that <em>could</em> be excused by "the deposited data is a stale subset" — cohort-size mismatches between deposited supplementary tables, patients flagged inconsistently across files, etc. — are omitted from these reports. Raw per-agent transcripts and the full superset of findings are available in each paper's audit directory.</p>
+
+<p class="footnote">Generated 2026-06-01. Auditor: rantene (Claude Code). All audits are reproducible from public GitHub + figshare + GEO artifacts; no access to restricted clinical data was used.</p>
+
+</body>
+</html>

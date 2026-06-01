@@ -1,0 +1,5 @@
+# Working directories with large downloaded data — not for publication
+aung2025-nsclc/
+thompson2025-cin-chemo/
+perturbfate-audit/
+*.zip

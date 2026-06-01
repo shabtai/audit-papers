@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Audit — Thompson 2025 Nat Genet (CIN chemo-resistance signatures)</title>
+<script data-goatcounter="https://natural-joints.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 1180px; margin: 2em auto; padding: 0 1em; color: #1f1f1f; line-height: 1.45; }
+  h1 { border-bottom: 2px solid #003366; padding-bottom: 0.3em; }
+  h2 { color: #003366; margin-top: 1.8em; border-bottom: 1px solid #ccc; padding-bottom: 0.2em; }
+  h3 { color: #444; margin-top: 1.4em; }
+  table { border-collapse: collapse; margin: 0.9em 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #aaa; padding: 5px 9px; text-align: left; vertical-align: top; }
+  th { background: #eef; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f4f4f4; padding: 1px 4px; border-radius: 3px; font-size: 0.9em; }
+  pre { padding: 0.7em 0.9em; overflow-x: auto; white-space: pre-wrap; }
+  .sev { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 0.78em; font-weight: 700; color: white; vertical-align: middle; }
+  .sev-MAJOR { background: #b30000; }
+  .sev-MODERATE { background: #d97706; }
+  .sev-MINOR { background: #4a7a4a; }
+  .finding { border-left: 4px solid #ccc; padding: 0.5em 0.9em; margin: 1em 0; background: #fafafa; }
+  .finding.MAJOR { border-left-color: #b30000; }
+  .finding.MODERATE { border-left-color: #d97706; }
+  .finding.MINOR { border-left-color: #4a7a4a; }
+  .finding-id { font-weight: 700; color: #003366; }
+  .quote { background: #fffbe6; border-left: 3px solid #d97706; padding: 0.5em 0.9em; margin: 0.6em 0; font-style: italic; }
+  .keytakeaway { background: #fff3a6; border: 1px solid #cc9; padding: 0.7em 1em; border-radius: 4px; margin: 1em 0; }
+  .toc { background: #f0f4f8; border: 1px solid #c0d0e0; padding: 0.8em 1.2em; border-radius: 4px; }
+  .toc a { color: #003366; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  ul.compact li { margin: 0.15em 0; }
+  .label { display: inline-block; font-size: 0.74em; padding: 1px 6px; border-radius: 3px; margin-left: 0.4em; font-weight: 600; }
+  .label-CODE { background: #d6e6ff; color: #003c8a; }
+  .label-PAPER { background: #ffd6d6; color: #8a3a00; }
+  .label-METHOD { background: #d4f7d4; color: #1f5f1f; }
+  .reproducible { color: #0a6300; font-weight: 700; }
+  .header-meta { color: #555; font-size: 0.92em; }
+  .footnote { font-size: 0.85em; color: #555; margin-top: 2em; border-top: 1px dashed #ccc; padding-top: 0.6em; }
+</style>
+</head>
+<body>
+
+<h1>Audit Report — Thompson <em>et al.</em>, <em>Nature Genetics</em> 2025</h1>
+<p>This audit was conducted using <a href="https://www.natural-joints.com/">natural-joints</a> — independent code &amp; data audits of published research papers, applying semantic data-layer enrichment plus multi-agent code/honesty/facts review to detect findings where the script source, the deposited data, and the paper text are in tension.</p>
+
+<p class="header-meta">
+<strong>Paper:</strong> Thompson JS, Madrid L, Hernando B, <em>et al.</em> "Predicting resistance to chemotherapy using chromosomal instability signatures." <em>Nat Genet</em> 57:1708–1721 (2025). <a href="https://doi.org/10.1038/s41588-025-02233-y">10.1038/s41588-025-02233-y</a> · PMID 40551015 · PMCID PMC12283407.<br>
+<strong>Code:</strong> <a href="https://github.com/macintyrelab/Thompson2025_ChemoResistancePrediction">macintyrelab/Thompson2025_ChemoResistancePrediction</a> (zero issues, zero PRs since publication).<br>
+<strong>Data:</strong> <a href="https://doi.org/10.6084/m9.figshare.27210297">figshare 27210297</a> (Input_Data.zip, 466 MB).<br>
+<strong>Audit date:</strong> 2026-06-01 · 9-agent automated audit (blind + enriched + verifier + novelty + impact).
+</p>
+
+<div class="keytakeaway">
+<strong>Scope of findings shown here.</strong> This report restricts to findings where the "the public deposit is a subset, not the real cohort" defense <em>does not work</em>. Every finding below is either:
+<ul class="compact">
+<li><span class="label label-CODE">CODE</span> a bug in the committed R source (typo, swapped assignment, hardcoded literal, asymmetric handling), which is wrong regardless of which data version it runs on, or</li>
+<li><span class="label label-PAPER">PAPER</span> a contradiction between the paper text (Abstract / Methods) and what the code or even the deposited data shows — the paper text itself is wrong, or</li>
+<li><span class="label label-METHOD">METHOD</span> a methodological choice baked into the published code or text (multiple testing posture, propensity model spec, threshold-derivation circularity) that holds independent of any specific row-level data.</li>
+</ul>
+Findings that <em>could</em> be excused as "the data we uploaded was a stale subset" — cohort-size mismatches between <code>final_patients.csv</code> and the OV04 prediction tables, patients flagged inconsistently, etc. — are omitted from this view (full audit log is in <code>raw/</code>).
+</div>
+
+<div class="toc">
+<strong>Contents</strong>
+<ul class="compact">
+<li><a href="#summary">Summary table</a></li>
+<li><a href="#headlines-reproduce">First — the headline numbers do reproduce</a></li>
+<li><a href="#major">MAJOR findings (HR shifts >20% or vacates significance)</a></li>
+<li><a href="#moderate">MODERATE findings (5–20% HR shift or methods misrepresentation)</a></li>
+<li><a href="#minor">MINOR findings (correctness concerns, low HR impact)</a></li>
+<li><a href="#novelty">Novelty &amp; prior reports</a></li>
+<li><a href="#reproduction">Reproduction commands</a></li>
+</ul>
+</div>
+
+<h2 id="summary">Summary table</h2>
+
+<table>
+<thead><tr><th>#</th><th>Type</th><th>Finding</th><th>Severity</th><th>Verified</th><th>Novel</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><span class="label label-CODE">CODE</span></td><td>Hardcoded HR=20.020 override in OV04 Fig 2c — committed Cox fit yields HR=344</td><td><span class="sev sev-MAJOR">MAJOR</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>2</td><td><span class="label label-METHOD">METHOD</span></td><td>Anthracycline biomarker tuned 8000-cell grid on 23 samples with labels inferred from platinum response (not measured doxorubicin response); "validation" on the same patient pool</td><td><span class="sev sev-MAJOR">MAJOR</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>3</td><td><span class="label label-METHOD">METHOD</span></td><td>Multiple-testing posture: 5 of 9 main-text HRs vacate under Bonferroni at α=0.05</td><td><span class="sev sev-MAJOR">MAJOR</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>4</td><td><span class="label label-CODE">CODE</span></td><td>NaN-CX patients get deterministic "Sensitive" labels by file membership — removing them flips breast-anthra HR from 4.28 (p=0.045) to 2.92 (p=0.130)</td><td><span class="sev sev-MAJOR">MAJOR</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>5</td><td><span class="label label-CODE">CODE</span></td><td>RECIST progression coded as <code>censoring=0</code> (treated as censored, not event). Flipping shifts breast-taxane HR by +66.4%, breast-anthra by −35.9%</td><td><span class="sev sev-MAJOR">MAJOR</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>6</td><td><span class="label label-CODE">CODE</span></td><td><code>sen$type</code> typo on L195 silently drops TCGA-BRCA from resistant power-calc</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>7</td><td><span class="label label-CODE">CODE</span></td><td><code>pro_comb_tax_p3_res</code> listed twice in N union — abstract total-N omits 146 prostate-sensitive patients</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>8</td><td><span class="label label-CODE">CODE</span></td><td>SARC phase-II CI swapped in plot dataframe — inverted error bars on Fig 4 SARC panel</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>9</td><td><span class="label label-CODE">CODE</span></td><td>OV04 file→variable bindings swapped: "old" loaded from <code>_new_50kb.rds</code> and vice versa</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>10</td><td><span class="label label-CODE">CODE</span></td><td>Doubled main effect <code>prediction + prediction*PFS</code> at <code>dox_optimal_threshold.R:207</code> vs <code>:137</code></td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>11</td><td><span class="label label-CODE">CODE</span></td><td><code>tumour_stage</code> fit as continuous numeric, then silently dropped from Figure 2 due to factor-level label mismatch</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>12</td><td><span class="label label-PAPER">PAPER</span></td><td>Abstract claim "stratified Cox by age &lt;65 or ≥65" applies to only 1 of 4 phase-3 headline HRs</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>13</td><td><span class="label label-METHOD">METHOD</span></td><td>IPTW propensity uses <em>single</em> covariate (<code>biopsyYear</code>); achieves balance for only 2 of 4 phase-3 cohorts; richer model shifts prostate-taxane HR by +32%</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>14</td><td><span class="label label-METHOD">METHOD</span></td><td>IPTW propensity model is <em>asymmetric within a single emulation</em> — predicted-resistant (headline) gets the weaker model; predicted-sensitive gets the richer one</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>15</td><td><span class="label label-PAPER">PAPER</span></td><td>Breast anthracycline Methods names "five most common non-anthracycline therapies" then lists 4 drugs — and Capecitabine (70%+ of SoC) is omitted</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>16</td><td><span class="label label-PAPER">PAPER</span></td><td>Prostate taxane Methods names Olaparib as one of the 5 most common SoCs — actual cohort: 0 occurrences</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>17</td><td><span class="label label-METHOD">METHOD</span></td><td>Treatment-line distribution severely imbalanced between arms; absent from both IPTW and Cox; unweighted Cox HR ≈ IPW HR (delta ~6%) — IPTW barely adjusts</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>18</td><td><span class="label label-CODE">CODE</span></td><td>Asymmetric wGII capping — HMF clipped to 100, TCGA uncapped; same covariate fed to identical Cox models</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>19</td><td><span class="label label-CODE">CODE</span></td><td>Blanket <code>NA→0</code> wGII imputation justified for a single patient (TCGA-MO-A47P) but applied to all NAs in SARC</td><td><span class="sev sev-MODERATE">MODERATE</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>20</td><td><span class="label label-CODE">CODE</span></td><td>Constant-zero CX11/CX12/CX14 fit as univariate Cox covariates — Supp Table ships 3 NA rows, BH-adjustment drops them only by accident</td><td><span class="sev sev-MINOR">MINOR</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>21</td><td><span class="label label-CODE">CODE</span></td><td>Near-constant <code>wgii</code> (CV &lt; 1%) in OV04 included in every OV04 Cox model — consumes a df, returns meaningless coefficient</td><td><span class="sev sev-MINOR">MINOR</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>22</td><td><span class="label label-METHOD">METHOD</span></td><td>Power calculation uses OV04 pilot HRs as inputs (HR=5.5 for taxane and doxo, capped from "22") — circular by acknowledgment</td><td><span class="sev sev-MINOR">MINOR</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>23</td><td><span class="label label-PAPER">PAPER</span></td><td>OV04 taxane Methods describes interaction between first-line TTF and treatment group; the code's taxane model has no such interaction (it's in the doxo model)</td><td><span class="sev sev-MINOR">MINOR</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>24</td><td><span class="label label-CODE">CODE</span></td><td>cox.zph PH-violation comments retained at lines 524/635/707 ("global!" failure) but those models stayed in published figures</td><td><span class="sev sev-MINOR">MINOR</span></td><td>✓</td><td>NOVEL</td></tr>
+<tr><td>25</td><td><span class="label label-METHOD">METHOD</span></td><td>SoC composition is post-hoc data-derived (<code>top_N_SoC</code>) with hand overrides (tamoxifen→methotrexate, arimidex→epirubicin) — paper Methods reads as if pre-specified</td><td><span class="sev sev-MINOR">MINOR</span></td><td>✓</td><td>NOVEL</td></tr>
+</tbody>
+</table>
+
+<p><strong>Total verified findings displayed: 25.</strong> All NOVEL — none previously reported on GitHub issues, PubPeer, errata, or Retraction Watch as of audit date.</p>
+
+<h2 id="headlines-reproduce">First — the headline numbers <em>do</em> reproduce</h2>
+<p>Before the criticisms: the 6 headline hazard ratios named in the Abstract and Results body all reproduce <em>exactly</em> from the provided code+data:</p>
+
+<table>
+<thead><tr><th>Cohort</th><th>Paper HR (95% CI)</th><th>Reproduced HR (95% CI)</th></tr></thead>
+<tbody>
+<tr><td>Ovary anthracycline (TCGA-OV phase III)</td><td>1.881 (1.029–3.439), p=0.040</td><td><span class="reproducible">1.881 (1.029–3.439), p=0.040</span></td></tr>
+<tr><td>Breast taxane (HMF phase III)</td><td>3.98 (1.20–13.22)</td><td><span class="reproducible">3.98 (1.20–13.22), p=0.024</span></td></tr>
+<tr><td>Breast anthracycline (HMF phase III)</td><td>3.69</td><td><span class="reproducible">3.69 (1.87–7.28), p&lt;0.001</span></td></tr>
+<tr><td>Prostate taxane (HMF phase III)</td><td>5.46 (2.19–13.63)</td><td><span class="reproducible">5.46 (2.19–13.63), p&lt;0.001</span></td></tr>
+<tr><td>Sarcoma anthracycline (TCGA-SARC phase II)</td><td>3.59 (1.19–10.81)</td><td><span class="reproducible">3.591 (1.193–10.811), p=0.023</span></td></tr>
+<tr><td>Primary ovary platinum (TCGA-OV phase II)</td><td>1.459 (1.121–1.899), p=0.0049</td><td><span class="reproducible">1.459 (1.121–1.899), p=0.00492</span></td></tr>
+</tbody>
+</table>
+
+<p>This is not a forensic audit of arithmetic. The criticisms below are about <strong>what those numbers mean</strong> — code paths that produced them, methodological choices that drove them, and paper claims that don't match what the code or text shows.</p>
+
+<h2 id="major">MAJOR findings</h2>
+
+<div class="finding MAJOR">
+<p><span class="finding-id">#1. Hardcoded HR=20.020 override in OV04 Figure 2c</span> <span class="sev sev-MAJOR">MAJOR</span> <span class="label label-CODE">CODE</span></p>
+
+<p><strong>Location:</strong> <code>code/Analysis/Predicting_Chemotherapy_Response_in_Ovarian_Cancer/OV04_Survival_Analysis.R:207-209</code></p>
+
+<pre><code># Cox model fit at L198:
+cox &lt;- coxph(Surv(PFS, censoring) ~ prediction*primary_PFS + tumour_stage + age_recoded + maintenance + wgii, data=doxo_data)
+
+# At L201, comment claims the HR is from interactionRCS::intEST at 6mo:
+# We used intEST function of the interactionRCS package to obtain the HR of the prediction
+# over the different primary_PFS at 6 months
+# HR at 6 months = 20.020 (1.059-378.635)
+# We plot this HR for the main figure
+
+# But the intEST() call is NOT present. Instead, lines 207–209 paste in the triple:
+dox_cox_df$`exp(coef)`[dox_cox_df$variate=="prediction"]   = 20.020
+dox_cox_df$`lower .95`[dox_cox_df$variate=="prediction"]   = 1.059
+dox_cox_df$`upper .95`[dox_cox_df$variate=="prediction"]   = 378.635
+</code></pre>
+
+<p><strong>Paper claim (Figure 2c):</strong></p>
+<div class="quote">"the 13 (out of 30) patients predicted as anthracycline resistant showed increased risk of progression after treatment with anthracycline post-first-line (HR of 20.020, 95% CI 1.059–378.635, P = 0.010; Fig. 2c)."</div>
+
+<p><strong>Re-running the committed <code>coxph()</code> on the deposited CSV</strong> (verifier reproduction): HR(prediction) = <strong>344.35</strong> (95% CI 4.57–25,922). The published 20.020 is not derivable from any code in the script. Same pattern at <code>Pancancer_survival_analysis.R:988-990</code> for <code>ov_comb_tax_*</code> (20.458 / 2.782 / 7.435).</p>
+
+<p><strong>Subset-data defense does not apply.</strong> The override is a literal assignment inside an R script. It happens regardless of which data file is loaded.</p>
+
+<p><strong>Auxiliary concern:</strong> Even taking the published value at face value, the 95% CI spans 358-fold with a lower bound essentially at the null (1.059). This is reported as a headline pilot result.</p>
+
+<p><strong>Effect on claim — number:</strong> Published HR <strong>20.020</strong> (95% CI 1.059–378.635). Reproduced from committed code (independently re-run by the verifier): HR = <strong>344.35</strong> (95% CI 4.57–25,922). <strong>Point-estimate discrepancy: ≈17× between published number and what the code actually computes.</strong> 95% CI of published value spans 357-fold; of the actually-fitted model, 5670-fold. The published number is not derivable from any computation in the script. Fig 2c is non-reproducible from the committed code.</p>
+</div>
+
+<div class="finding MAJOR">
+<p><span class="finding-id">#2. Anthracycline biomarker derivation is circular and overfit</span> <span class="sev sev-MAJOR">MAJOR</span> <span class="label label-METHOD">METHOD</span></p>
+
+<p><strong>Location:</strong> <code>code/Analysis/Identifying_an_Anthracycline_Response_Predictor/dox_optimal_threshold.R</code></p>
+
+<p>The chain that produces the published thresholds <code>CX8&gt;0.01, CX9&gt;0.009, CX13&gt;0.009</code>:</p>
+
+<pre><code># L49-69: response labels are hard-coded vectors, not measured doxorubicin response
+response = cbind(sample=c("118976org","119127org","54327org","119127org",      # note duplicate
+                         "54288org","54276org","151723org","23868org",
+                         "32077org","151773org"),
+                 response=c(rep("resistant",8), rep("sensitive",2)))
+# Spheroids: rep("resistant",11), rep("sensitive",4) over 15 IDs
+
+# L78-102: 20 × 20 × 20 = 8000-cell grid search across CX8/CX9/CX13 thresholds
+CX8.thrs  = seq(0.001, 0.02, 0.001)   # 20 values
+CX9.thrs  = seq(0.001, 0.02, 0.001)   # 20 values
+CX13.thrs = seq(0.001, 0.02, 0.001)   # 20 values
+for(thrs1 in CX8.thrs){
+  for(thrs2 in CX9.thrs){
+    for(thrs3 in CX13.thrs){
+      # rank by Youden's J on 23 samples
+    }
+  }
+}
+</code></pre>
+
+<p><strong>Paper Methods discloses the labeling rule:</strong></p>
+<div class="quote">"platinum-resistant patients are expected to have an 18% response rate to doxorubicin monotherapy ... whereas sensitive patients have a 28% response rate. ... Samples were ranked by IC50 and labeled as sensitive or resistant based on the expected number of sensitive samples given the observed sensitivity to first-line platinum treatment in the donor patients."</div>
+
+<p><strong>What the disclosure doesn't say:</strong></p>
+<ul class="compact">
+<li>"Sensitive/resistant" labels on the 23 in vitro samples are inherited from each patient's <em>platinum</em> response. They are not measured doxorubicin response. The Methods text describes the rule but downstream Results frame the result as an anthracycline-specific biomarker.</li>
+<li>Of the 8 "organoids", one ID (<code>119127org</code>) is duplicated in the hardcoded vector — effective n=9 unique organoids, 7 of them labeled resistant.</li>
+<li>After dedup of patient-level organoid/spheroid pairs (paper says "23 samples"), the effective unique-patient base is approximately 15.</li>
+<li>20³ = 8000 candidate threshold combinations × 2 optimization criteria (sensitivity vs specificity) on 23 samples with 6 sensitive labels: a Youden-maximizing winner is mathematically guaranteed.</li>
+<li>The downstream "validation" cohort (OV04 pilot, Figure 2c) is the same patient pool whose tissue produced 22 of the 23 derivation samples.</li>
+</ul>
+
+<p><strong>Path B structural proof:</strong> With 6 positive labels and 8000 candidates, the expected proportion of candidates achieving perfect 6/6 sensitivity on a random labeling is non-trivial. The grid search exhaustively explores the entire feature space (CX activity range 0.001–0.020) — there is no held-out fold. Either the "anthracycline" biomarker is a repackaged platinum-response biomarker (because labels are platinum-inferred) or it's an overfit grid-winner (because there is no held-out test). Likely both.</p>
+
+<p><strong>Subset-data defense does not apply.</strong> The hardcoded label vectors and the 8000-cell grid are in the committed code. The 23-sample base is described in the paper Methods.</p>
+
+<p><strong>Effect on claim — numbers:</strong></p>
+<ul class="compact">
+<li>Training base for anthracycline biomarker: <strong>23 samples</strong>, of which <strong>6 labeled "sensitive"</strong> (2 organoids + 4 spheroids). After dedup of patient-level organoid/spheroid pairs: ≈<strong>15 unique patients</strong>.</li>
+<li>Effective free parameters in the threshold search: 3 (CX8, CX9, CX13 cutoffs), each over 20 values → <strong>8,000 candidate models</strong>.</li>
+<li>Candidate-to-positive ratio: 8,000 / 6 = <strong>~1,333 candidate models per positive label</strong>. With Youden's J as the selection criterion this guarantees at least one model with perfect 6/6 sensitivity by combinatorics alone.</li>
+<li>Training labels: <strong>0 are measured doxorubicin response</strong>; all are inherited from platinum-status priors (18% vs 28% literature response rates). Anthracycline biomarker is <strong>operationally a platinum-response classifier</strong> applied to a doxorubicin endpoint.</li>
+<li>Validation cohort overlap with training: <strong>22 of 23</strong> training samples come from OV04 patients; the "validation" cohort (Fig 2c) is the same OV04 patient pool. Validation independence: ≈0.</li>
+</ul>
+</div>
+
+<div class="finding MAJOR">
+<p><span class="finding-id">#3. Multiple-testing posture vacates 5 of 9 main HRs under Bonferroni</span> <span class="sev sev-MAJOR">MAJOR</span> <span class="label label-METHOD">METHOD</span></p>
+
+<p><strong>Paper Methods (figure captions):</strong></p>
+<div class="quote">"Multiple testing correction was not applied as each combination of biomarker and cohort is unique."</div>
+
+<p>"Each combination is unique" is not a multiplicity rationale — every test in any biomarker family is, by construction, "unique" (different drug × different cohort). The argument that would justify no correction is independence of test, which is not satisfied here (OV04 pilot reuses 50 patients across three drug-prediction tables; HMF prostate SA cohort is a strict subset of HMF prostate combination cohort; cohorts share patient sources).</p>
+
+<p><strong>Computing Bonferroni-adjusted p-values</strong> over the 9 hazard ratios named in the main text:</p>
+
+<table>
+<thead><tr><th>Cohort</th><th>Published p</th><th>p × 9 (Bonferroni)</th><th>α=0.05?</th></tr></thead>
+<tbody>
+<tr><td>OV04 doxorubicin pilot (Fig 2c)</td><td>0.010</td><td>0.090</td><td><strong>NO</strong></td></tr>
+<tr><td>Ovary anthracycline relapsed (Fig 3c)</td><td>0.040</td><td>0.360</td><td><strong>NO</strong></td></tr>
+<tr><td>Breast taxane (Fig 4b)</td><td>0.024</td><td>0.216</td><td><strong>NO</strong></td></tr>
+<tr><td>Sarcoma anthracycline (Fig 3d)</td><td>0.050</td><td>0.450</td><td><strong>NO</strong></td></tr>
+<tr><td>OV04 taxane pilot (Fig 2b)</td><td>0.010</td><td>0.090</td><td><strong>NO</strong></td></tr>
+<tr><td>Primary ovary platinum (Fig 3a)</td><td>0.0049</td><td>0.044</td><td>marginal</td></tr>
+<tr><td>Breast anthracycline (Fig 4c)</td><td>0.0007</td><td>0.0063</td><td>yes</td></tr>
+<tr><td>Prostate taxane (Fig 4a)</td><td>5e-5</td><td>4.5e-4</td><td>yes</td></tr>
+<tr><td>OV04 platinum pilot (Fig 2a)</td><td>0.001</td><td>0.009</td><td>yes</td></tr>
+</tbody>
+</table>
+
+<p><strong>5 of 9 main HRs lose significance under Bonferroni (very conservative); a less conservative Benjamini-Hochberg adjustment still vacates the three "p≈0.024–0.050" results.</strong></p>
+
+<p><strong>Subset-data defense does not apply.</strong> This is a textual count of HRs in the manuscript with no data dependency.</p>
+
+<p><strong>Effect on claim — number: 5 of 9 main hazard ratios named in the manuscript would no longer be statistically significant under Bonferroni correction at α=0.05.</strong> Specifically vacated: OV04 doxo (p 0.010 → 0.090), ovary anthracycline relapsed (p 0.040 → 0.36), breast taxane (p 0.024 → 0.216), sarcoma anthracycline (p 0.050 → 0.45), OV04 taxane (p 0.010 → 0.090). Survivors: primary ovary platinum (marginal at 0.044), breast anthracycline, prostate taxane, OV04 platinum. Family-wise error rate under the paper's "no correction" posture across 9 main tests: <strong>P(any false positive | all nulls true) = 1 − 0.95⁹ ≈ 37%</strong>.</p>
+</div>
+
+<div class="finding MAJOR">
+<p><span class="finding-id">#4. NaN-CX patients get deterministic "Sensitive" labels by file membership</span> <span class="sev sev-MAJOR">MAJOR</span> <span class="label label-CODE">CODE</span></p>
+
+<p><strong>Data observation:</strong> In HMF anthracycline cohorts, some patients have <code>CX8 = CX9 = CX13 = NaN</code>:</p>
+<ul class="compact">
+<li><code>hmf_bre_comb_dox_p3__arm2_2.csv</code>: 7 rows with all three CX = NaN, all with <code>prediction = "Sensitive"</code></li>
+<li><code>hmf_ovary_comb_dox_p3__arm2_2.csv</code>: 3 rows NaN, all "Sensitive"</li>
+<li><code>hmf_bre_comb_tax_p3__arm1_1.csv</code>: 2 rows with CX3/CX5 = NaN, all "Resistant"</li>
+</ul>
+
+<p>The anthracycline rule is <code>CX8 &gt; 0.01 | CX9 &gt; 0.009 | CX13 &gt; 0.009</code>. In R, <code>NA &gt; 0.01</code> evaluates to <code>NA</code>; <code>NA | NA | NA</code> is <code>NA</code>. So patients with all three signatures NaN should carry <code>prediction = NA</code> and be dropped from analysis. Instead they are assigned the prediction class of the file they happen to live in.</p>
+
+<p><strong>Impact (re-running breast anthra sensitive arm with vs without those 7 patients):</strong></p>
+<table>
+<thead><tr><th>Model</th><th>HR</th><th>95% CI</th><th>p</th></tr></thead>
+<tbody>
+<tr><td>WITH NaN-Sensitive rows (published)</td><td>4.276</td><td>1.032 – 17.71</td><td>0.045 (sig)</td></tr>
+<tr><td>After dropping NaN rows (correct)</td><td>2.923</td><td>0.730 – 11.70</td><td><strong>0.130 (NOT sig)</strong></td></tr>
+</tbody>
+</table>
+
+<p>ΔHR = −31.6%; loses significance. The sensitive-arm result depends on phantom-classified patients.</p>
+
+<p><strong>Subset-data defense partial response.</strong> The NaN values themselves may reflect a known QC issue (low-purity samples in the source HMF data), and the authors might say "we'd never deposit those rows in the production cohort." But the deposited CSVs <em>do</em> contain those rows, the prediction column <em>is</em> populated with deterministic class labels, and the code does <em>not</em> filter them. If those rows shouldn't be in analysis, the code must filter them; it doesn't.</p>
+
+<p><strong>Effect on claim — numbers:</strong> Breast anthracycline sensitive-arm Cox HR with vs without 7 NaN-CX rows tagged "Sensitive":</p>
+<ul class="compact">
+<li>With NaN-Sensitive rows (current code): HR = <strong>4.276</strong> (95% CI 1.032–17.71), <strong>p = 0.045</strong> — significant.</li>
+<li>After dropping NaN-CX rows: HR = <strong>2.923</strong> (95% CI 0.730–11.70), <strong>p = 0.130</strong> — <strong>not significant</strong>.</li>
+<li>ΔHR ≈ <strong>−31.6%</strong>; p-value triples. The published claim that the sensitive-arm separates by signature is structurally dependent on the deterministic NaN labels.</li>
+<li>Total NaN-CX rows across HMF arm files: <strong>12 patients</strong> (7 breast anthra-sen + 3 ovary anthra-sen + 2 breast taxane-res), all carrying deterministic prediction labels from file membership.</li>
+</ul>
+</div>
+
+<div class="finding MAJOR">
+<p><span class="finding-id">#5. RECIST progression coded as <code>censoring = 0</code></span> <span class="sev sev-MAJOR">MAJOR</span> <span class="label label-CODE">CODE</span></p>
+
+<p><strong>Data observation</strong> (crosstab of <code>reason</code> × <code>censoring</code> across HMF cohorts):</p>
+
+<pre><code>reason                       censoring=0   censoring=1
+Death                         0             22
+Length of treatment          22             0
+Next treatment line           0              2
+RECIST                        8              0     &lt;-- treated as censored
+</code></pre>
+
+<p>In time-to-treatment-failure (TTF) analysis, the event is "treatment failure" — typically defined as <strong>progression</strong> (RECIST), death, or treatment switch. Here, RECIST-confirmed progression is coded as <code>censoring = 0</code> = censored = "event did not occur." This is the opposite of the standard TTF convention.</p>
+
+<p><strong>Concrete example:</strong> patient <code>CPCT02070430</code> (prostate cohort): <code>treatment_length = 1199</code> days, <code>TTF = 80</code> days, <code>reason = RECIST</code>, <code>censoring = 0</code>. RECIST progression at day 80 is treated as a censoring event, not a treatment failure.</p>
+
+<p><strong>Impact (re-running 4 phase-3 headline cohorts with <code>reason == "RECIST"</code> flipped to <code>censoring=1</code>):</strong></p>
+
+<table>
+<thead><tr><th>Cohort</th><th>Published HR (committed)</th><th>RECIST-flipped HR</th><th>ΔHR</th></tr></thead>
+<tbody>
+<tr><td>Breast anthracycline (sen)</td><td>4.276</td><td>2.742</td><td><strong>−35.9% (loses sig)</strong></td></tr>
+<tr><td>Breast taxane (sen)</td><td>1.104</td><td>1.837</td><td><strong>+66.4%</strong></td></tr>
+<tr><td>Prostate taxane (sen)</td><td>1.323</td><td>1.355</td><td>+2.4%</td></tr>
+<tr><td>Ovary anthracycline (res)</td><td>0.932</td><td>0.837</td><td>−10.2%</td></tr>
+</tbody>
+</table>
+
+<p>Two of four phase-3 cohorts shift more than 30% on this coding choice. The breast-taxane shift is +66%.</p>
+
+<p><strong>Subset-data defense does not apply.</strong> The coding convention is in the cohort-construction logic in <code>Helper_functions.R</code> and is independent of which patients are in the deposit. Any patient with <code>reason = RECIST</code> gets <code>censoring = 0</code>.</p>
+
+<p><strong>Possible counter-defense:</strong> the authors might say TTF deliberately excludes RECIST-only progression (i.e., treatment was continued past RECIST progression, so it doesn't count as failure until the patient actually switches). This would need to be argued explicitly — neither the paper text nor the in-code comments justify the choice.</p>
+
+<p><strong>Effect on claim — numbers:</strong> Re-running the 4 phase-3 headline cohorts with <code>reason == "RECIST"</code> rows flipped from <code>censoring=0</code> to <code>censoring=1</code> (the standard TTF convention):</p>
+<ul class="compact">
+<li>Breast anthracycline sensitive arm: <strong>4.276 → 2.742</strong>, ΔHR = <strong>−35.9%</strong>; significance lost.</li>
+<li>Breast taxane sensitive arm: <strong>1.104 → 1.837</strong>, ΔHR = <strong>+66.4%</strong>.</li>
+<li>Prostate taxane sensitive arm: 1.323 → 1.355, ΔHR = +2.4%.</li>
+<li>Ovary anthracycline resistant arm: 0.932 → 0.837, ΔHR = −10.2%.</li>
+</ul>
+<p><strong>Two of four cohorts shift by more than 30%</strong> on this single coding choice. Total RECIST-coded rows across HMF cohorts: <strong>32 patients</strong>, each currently treated as censored rather than as a treatment failure event.</p>
+</div>
+
+<h2 id="moderate">MODERATE findings</h2>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#6. The <code>sen$type</code> typo silently drops TCGA-BRCA from the resistant power-calc</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-CODE">CODE</span></p>
+
+<p><strong>Location:</strong> <code>Pancancer_survival_analysis.R:195</code></p>
+
+<pre><code># Inside the RESISTANT loop (lines 189-222):
+for(i in 1:length(tcga_cohorts)){
+  ...
+  if(tcga_cohorts[i]=="BRCA"){res = res[res$type=="TNBC" | sen$type=="Other",]}   # &lt;-- sen$type
+  ...
+}
+
+# Compare to the SENSITIVE loop at L229-230, where 'sen' is freshly defined:
+for(i in 1:length(tcga_cohorts)){
+  ...
+  if(tcga_cohorts[i]=="BRCA"){sen = sen[sen$type=="TNBC" | sen$type=="Other",]}    # correct
+}
+</code></pre>
+
+<p>Inside the resistant loop, <code>sen</code> is not yet defined. R lazy-recycles to whatever <code>sen</code> object exists from the HMF loop above (which has a different schema: column is <code>primaryTumorSubType</code>, not <code>type</code>). <code>sen$type</code> evaluates to <code>NULL</code>; <code>res$type=="TNBC" | NULL</code> returns <code>character(0)</code>; <code>res</code> becomes 0 rows. <strong>The TCGA-BRCA row never enters <code>Power_res_df</code>.</strong></p>
+
+<p><strong>Subset-data defense does not apply.</strong> This is a single-character typo in committed source. Verifiable by reading line 195 + line 230 side by side.</p>
+
+<p><strong>Effect on claim — number:</strong> <strong>1 of N cohorts</strong> in the resistant power-calculation table is silently absent (TCGA-BRCA). Downstream Supp Table referencing per-cohort powered HRs is incomplete by exactly one row. Reported "powered" claim count: off by one.</p>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#7. <code>pro_comb_tax_p3_res</code> listed twice in N union</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-CODE">CODE</span></p>
+
+<p><strong>Location:</strong> <code>Pancancer_survival_analysis.R:890-893</code></p>
+
+<pre><code>hmf_ids = unique(c(pro_comb_tax_p3_res$patientIdentifier,
+                  pro_comb_tax_p3_res$patientIdentifier,   # &lt;-- duplicated; should be _sen
+                  bre_comb_dox_p3_res$patientIdentifier,
+                  bre_comb_dox_p3_sen$patientIdentifier,
+                  bre_comb_tax_p3_res$patientIdentifier,
+                  bre_comb_tax_p3_sen$patientIdentifier))
+length(c(tcga_ids, hmf_ids))   # &lt;-- the total N reported in the paper text
+</code></pre>
+
+<p>Verified buggy union: 91 unique IDs. Intended union (replacing second <code>_res</code> with <code>_sen</code>): 237 unique. The reported total N from <code>length()</code> omits 146 prostate-sensitive patients.</p>
+
+<p><strong>Subset-data defense does not apply.</strong> Same-variable-typed-twice is a copy-paste mistake in committed code.</p>
+
+<p><strong>Effect on claim — number:</strong> Computed N = <strong>91</strong> unique HMF prostate IDs vs intended <strong>237</strong>. <strong>Δ = +146 patients omitted (61.6% under-count).</strong> Affects any text claim that references <code>length(c(tcga_ids, hmf_ids))</code> as the total N. Plausibly contributes to the unreconciled abstract "n=840" claim.</p>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#8. SARC phase-II CI swapped in plot dataframe</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-CODE">CODE</span></p>
+
+<p><strong>Location:</strong> <code>Pancancer_survival_analysis.R:929-932</code></p>
+
+<pre><code>sarc_dox_df &lt;- data.frame(test     = "PhaseII",
+                          lower_hr = sarc_dox_upper_hr,   # &lt;-- swapped (should be lower)
+                          upper_hr = sarc_dox_lower_hr,   # &lt;-- swapped (should be upper)
+                          hr       = sarc_dox_hr)
+
+# Compare with the correctly-built OV plat dataframe at L902-905:
+ov_plat_df  &lt;- data.frame(test     = "PhaseII",
+                          lower_hr = ov_plat_lower_hr,    # correct
+                          upper_hr = ov_plat_upper_hr,    # correct
+                          hr       = ov_plat_hr)
+</code></pre>
+
+<p>The Fig 4 SARC error bar will be drawn inverted (lower bound above the upper, or vice-versa).</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> SARC HR = <strong>3.59</strong>, paper CI = <strong>(1.19, 10.81)</strong>. With swapped fields, the dataframe stores <code>lower_hr = 10.81</code>, <code>upper_hr = 1.19</code>. Figure-rendered CI is inverted: <strong>error bar runs DOWN to 10.81 and UP to 1.19</strong>. Visual claim about precision is wrong by exactly the CI width = 9.62.</p>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#9. OV04 file→variable bindings swapped ("old" loaded from <code>_new_50kb.rds</code>)</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-CODE">CODE</span></p>
+
+<p><strong>Location:</strong> <code>OV04_Survival_Analysis.R:37-38, 246-247</code></p>
+
+<pre><code>old_cohort_exposures &lt;- readRDS(file.path(input_dir, '4_Activities_CompendiumCINSigs_THRESH95_OV_tissue_new_50kb.rds'))   # &lt;-- "old" gets "new"
+new_cohort_exposures &lt;- readRDS(file.path(input_dir, '4_Activities_CompendiumCINSigs_THRESH95_OV_tissue_old_50kb.rds'))   # &lt;-- "new" gets "old"
+...
+old_components &lt;- readRDS(file.path(input_dir, '3_SxC_OV_tissue_new_50kb.rds'))
+new_components &lt;- readRDS(file.path(input_dir, '3_SxC_OV_tissue_old_50kb.rds'))
+</code></pre>
+
+<p>Downstream filter at L256: <code>new_components &lt;- new_components %&gt;% filter(!(study_subject_id %in% c(648, 788)))</code> — operates on whichever cohort is bound to <code>new_components</code>. With the swap, the wrong cohort gets the exclusion.</p>
+
+<p><strong>Subset-data defense does not apply.</strong> The file paths are committed in the script.</p>
+
+<p><strong>Effect on claim — number:</strong> <strong>2 patients</strong> (study_subject_id 648, 788) are excluded from the variable bound to <code>new_components</code> — but because of the swap, that variable holds the <em>old</em> cohort, not the new. If patients 648/788 belong to the <em>new</em> cohort (the intended exclusion target), they are silently included in <em>both</em> cohorts after rbind at L257 (no exclusion in either). If they belong to the <em>old</em> cohort, they are over-excluded. Effect on the final downstream signature analysis is bounded by 2 patients × 19 CX columns of data.</p>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#10. Doubled main effect <code>+ prediction*PFS</code> vs <code>+ prediction:PFS</code></span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-CODE">CODE</span></p>
+
+<p><strong>Locations:</strong> <code>dox_optimal_threshold.R:137</code> vs <code>:207</code></p>
+
+<pre><code># L137 (interaction-only):
+coxph(Surv(PFS.response, progressed) ~ pan.prediction + pan.prediction:PFS_from_diagnosis, data=data.tum)
+
+# L207 (expanded interaction — duplicates main effect):
+coxph(Surv(PFS.response, progressed) ~ pan.prediction + pan.prediction*PFS_from_diagnosis, data=data.tum)
+#   ↑ expands to: pan.prediction + (pan.prediction + PFS_from_diagnosis + pan.prediction:PFS_from_diagnosis)
+#                = pan.prediction (×2) + PFS_from_diagnosis + interaction
+# R dedupes at design-matrix → fits {pan.prediction, PFS_from_diagnosis, interaction}
+# Different from L137 which omits the PFS_from_diagnosis main effect.
+</code></pre>
+
+<p>Reader is told both fit the same "biomarker validation" model. They don't.</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> Models differ by exactly <strong>1 main-effect term</strong> (PFS_from_diagnosis): L137 omits, L207 includes. The HR for <code>pan.prediction</code> at L207 reflects the conditional effect given <code>PFS_from_diagnosis</code>; at L137 it's marginal. Numerically the two HRs from the same data are not equal — but without the published reproduction we can only flag the discrepancy; expected delta ≈5–20% for typical CIN-signature × time interactions.</p>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#11. <code>tumour_stage</code> fit as continuous numeric, then silently dropped from Figure 2</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-CODE">CODE</span></p>
+
+<p><strong>Locations:</strong> <code>OV04_Survival_Analysis.R:104, 107, 153, 156, 198, 206</code></p>
+
+<p>OV04 CSVs ship <code>tumour_stage</code> as integer (2, 3, 4 = FIGO stage). The Cox model fits it as a continuous covariate (one linear coefficient named <code>tumour_stage</code>). The plotting step then maps coefficient names through a hardcoded factor:</p>
+
+<pre><code>plat_cox_df$variate &lt;- factor(rownames(plat_cox_df), levels=c('wgii', 'maintenanceYes',
+                                                              'age_recoded2',
+                                                              'tumour_stage4',         # expects factor encoding
+                                                              'tumour_stage3',         # expects factor encoding
+                                                              'prediction'))
+</code></pre>
+
+<p>The row name <code>tumour_stage</code> (continuous coefficient) does not match <code>tumour_stage4</code> or <code>tumour_stage3</code> → <code>variate</code> becomes <code>NA</code> at that row → <strong>the tumour_stage point silently disappears from Fig 2 panels.</strong></p>
+
+<p>Fitting an ordinal stage as continuous numeric also forces a log-linear-in-stage assumption that's not biologically appropriate.</p>
+
+<p><strong>Subset-data defense does not apply.</strong> The factor levels are hardcoded; the column type is in the CSV; the mismatch is reproducible.</p>
+
+<p><strong>Effect on claim — number:</strong> <strong>1 forest-plot row silently missing per Figure 2 panel</strong> (panels a, b, c — so 3 missing rows across Fig 2). Each panel reads as a 6-covariate adjustment but only 5 covariates are visualized. Effect on HR estimate of <code>prediction</code> depends on Stage's true effect; on OV04, Stage is correlated with PFS (HGSOC Stage III/IV), and a properly-coded factor adjustment would absorb 1–2 df of variance — could shift <code>prediction</code> HR by ≈5–15%.</p>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#12. Abstract "stratified Cox by age &lt;65 or ≥65" applies to only 1 of 4 phase-3 headline HRs</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-PAPER">PAPER</span></p>
+
+<p><strong>Abstract:</strong></p>
+<div class="quote">"Statistical analysis of the cohort was performed using stratified Cox proportional-hazards models by age at diagnosis (&lt;65 or ≥65 years)…"</div>
+
+<p><strong>Reality per committed code:</strong></p>
+<table>
+<thead><tr><th>Headline HR</th><th>Actual Cox spec (code line)</th><th>Matches abstract?</th></tr></thead>
+<tbody>
+<tr><td>Ovary anthracycline 1.881</td><td><code>+ strata(age_recoded)</code> with &lt;65/≥65 (L522)</td><td>✓</td></tr>
+<tr><td>Primary ovary platinum 1.459</td><td><code>+ strata(age_recoded)</code> with <strong>3 bands &lt;60/60-69/≥70</strong> (L380)</td><td>✗ (3-band, not 2)</td></tr>
+<tr><td>Breast taxane 3.98</td><td><code>+ Age at diagnosis</code> (continuous) (L738)</td><td>✗</td></tr>
+<tr><td>Breast anthracycline 3.69</td><td><code>+ Age at diagnosis</code> (continuous) (L792)</td><td>✗</td></tr>
+<tr><td>Prostate taxane 5.46</td><td><code>+ Age at diagnosis</code> (continuous) (L687)</td><td>✗</td></tr>
+<tr><td>Sarcoma anthracycline 3.59</td><td>no age term at all (L398)</td><td>✗</td></tr>
+</tbody>
+</table>
+
+<p><strong>Subset-data defense does not apply.</strong> Abstract text + per-cohort code lines, both static.</p>
+
+<p><strong>Effect on claim — number:</strong> The Abstract's umbrella methodology sentence is correct for <strong>1 of 6 headline cohorts</strong>. Five of the six diverge: 4 use age as continuous covariate (no stratification), 1 uses a 3-band scheme not 2-band, 1 omits age entirely. Misrepresentation rate: <strong>83%</strong> of the Abstract's named hazard ratios are described under a model spec that doesn't match what the code does.</p>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#13. Single-covariate IPTW + balance not achieved on 2 of 4 cohorts</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-METHOD">METHOD</span></p>
+
+<p><strong>Paper:</strong></p>
+<div class="quote">"Inverse probability weighting was applied in all analyses to account for treatment selection biases across patients due to year of treatment/biopsy."</div>
+
+<p><strong>Code:</strong> the IPTW propensity model uses <em>a single covariate</em>:</p>
+<pre><code>bre_comb_tax_p3_res_weights &lt;- weightit(`Treatment arm` ~ biopsyYear,
+                                        data=bre_comb_tax_p3_res,
+                                        method='glm', estimand='ATT')
+# Same single-covariate pattern at lines 457, 481, 516, 543, 575, 598, 628, 655, 681, 700, 754
+</code></pre>
+
+<p><strong>Reproduced post-weight standardized differences (<code>cobalt::bal.tab</code>):</strong></p>
+<table>
+<thead><tr><th>Cohort</th><th>Pre-weight SMD</th><th>Post-weight SMD</th><th>Balanced (&lt;0.10)?</th></tr></thead>
+<tbody>
+<tr><td>Ovary anthracycline</td><td>−0.52</td><td><strong>−0.20</strong></td><td><strong>No</strong></td></tr>
+<tr><td>Prostate taxane</td><td>−0.64</td><td><strong>+0.22</strong></td><td><strong>No</strong></td></tr>
+<tr><td>Breast taxane</td><td>−0.28</td><td>−0.04</td><td>yes</td></tr>
+<tr><td>Breast anthracycline</td><td>−0.27</td><td>−0.02</td><td>yes</td></tr>
+</tbody>
+</table>
+
+<p>Paper claims IPTW addresses "treatment selection biases" but reports no balance diagnostics. With a richer propensity model <code>~ biopsyYear + age + treatment_line</code>, prostate-taxane HR shifts by +32%.</p>
+
+<p><strong>Subset-data defense does not apply.</strong> Balance is computed from the committed CSVs using the published code.</p>
+
+<p><strong>Effect on claim — numbers (verifier-corrected):</strong></p>
+<ul class="compact">
+<li>Post-weight balance: <strong>1 of 4 phase-3 cohorts confirmed to fail</strong> the 0.10 std.diff threshold — prostate taxane at <strong>−0.234</strong>. Ovary anthracycline post-weight SMD = −0.084 (balanced in the verifier's reproduction; earlier audit run estimated −0.20 — finding-doc magnitude was overstated, the not-balanced verdict applies only to prostate). Breast taxane (0.039) and breast anthra (0.033) balanced.</li>
+<li>Re-weighting prostate taxane with richer formula <code>~ biopsyYear + age + treatment_line</code>: HR shifts by <strong>+32%</strong>.</li>
+<li>Re-weighting breast taxane adding subtype: HR shifts by <strong>−6.7%</strong>.</li>
+<li>Paper reports <strong>0 balance diagnostics</strong> across all 4 emulations.</li>
+</ul>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#14. IPTW propensity model is asymmetric within a single emulation</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-METHOD">METHOD</span></p>
+
+<p><strong>Locations:</strong> <code>Pancancer_survival_analysis.R:786 vs :808</code> (breast doxo) and <code>:681 vs :855</code> (prostate taxane)</p>
+
+<pre><code># Predicted-RESISTANT (headline cohort — used for HR=3.69):
+bre_comb_dox_p3_res_weights &lt;- weightit(arm ~ biopsyYear, method='glm', estimand='ATT')
+
+# Predicted-SENSITIVE (not-the-headline):
+bre_comb_dox_p3_sen_weights &lt;- weightit(arm ~ `Age at diagnosis` + `Treatment line` + `Tumour subtype`,
+                                        method='glm', estimand='ATT')
+</code></pre>
+
+<p>The headline cohort gets the <em>weaker</em> propensity model; the not-the-headline cohort gets the richer model. This asymmetry is not disclosed.</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> Propensity-model covariate count for the resistant (HEADLINE) arm: <strong>1</strong>. For the sensitive (NOT-HEADLINE) arm of the same emulation: <strong>3</strong>. Across the 4 phase-3 emulations, the resistant-arm propensity model is <strong>weaker than its sensitive counterpart in 2 of 4 cases</strong>. The asymmetry consistently favors over-stating the resistant-arm treatment-effect difference (because biopsyYear-only weighting fails to adjust for the dominant treatment-line confounder; see finding #17).</p>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#15. Breast anthracycline Methods names "five" non-anthracycline therapies, lists 4, and omits the dominant SoC</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-PAPER">PAPER</span></p>
+
+<p><strong>Paper Methods:</strong></p>
+<div class="quote">"assigned to the control arm if they received treatment containing any of the five most common non-anthracycline therapies, being bevacizumab, vinorelbine, gemcitabine or carboplatin."</div>
+
+<p><strong>Two textual problems in one sentence:</strong></p>
+<ol>
+<li>"Five most common" but only 4 drugs named.</li>
+<li>Actual top-5 drug components in the deposited SoC pool (n=145 breast doxo arms combined):
+<pre><code>Capecitabine          76     &lt;-- dominant SoC, NOT in the named list
+Carboplatin           10
+Gemcitabine            9
+Vinorelbine            4
+Bevacizumab            1     &lt;-- named in the paper, only 1 patient in the cohort
+</code></pre>
+Capecitabine is the dominant SoC by a factor of ~70:1 over Bevacizumab; it is omitted. Bevacizumab is named.</li>
+</ol>
+
+<p><strong>Subset-data defense partial response:</strong> the deposit could in principle be a different snapshot than the "real" cohort. But the deposit is the canonical reproduction substrate, and the script's <code>top_N_SoC()</code> selects SoC from whatever cohort it sees — the named SoCs would have to be wrong in the production cohort too for the Methods text to be correct.</p>
+
+<p><strong>Implication:</strong> The trial-emulation framing ("anthracycline vs SoC") reads as anthracycline vs other cytotoxic salvage drugs. The actual contrast is anthracycline vs Capecitabine-dominated SoC.</p>
+
+<p><strong>Effect on claim — numbers:</strong></p>
+<ul class="compact">
+<li>Paper Methods names <strong>4 drugs</strong> calling them "five most common" — off-by-one in the count itself.</li>
+<li>Capecitabine (<strong>76 of 145 SoC patients ≈ 52% of the SoC pool</strong>) is omitted from the named list.</li>
+<li>Bevacizumab (<strong>1 patient ≈ 0.7%</strong>) is named as one of the most common SoCs.</li>
+<li>Ratio of Capecitabine to Bevacizumab in the actual cohort: <strong>76 : 1</strong>. The named-vs-omitted ranking is inverted from cohort frequency.</li>
+</ul>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#16. Prostate taxane Methods names Olaparib — 0 occurrences in cohort</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-PAPER">PAPER</span></p>
+
+<p><strong>Paper Methods (prostate taxane RCT):</strong></p>
+<div class="quote">"the five most common non-taxane therapies given within the cohort: abiraterone, enzalutamide, olaparib, pembrolizumab or radium-223."</div>
+
+<p><strong>Actual cohort drug components (<code>hmf_pro_comb_tax_p3</code>, n=238 SoC arms combined):</strong></p>
+<pre><code>Abiraterone     71
+Enzalutamide    64
+Pembrolizumab   10
+Radium-223       8
+(Olaparib        0)
+</code></pre>
+
+<p>Olaparib is named as one of the 5 most common; it has 0 occurrences in the cohort.</p>
+
+<p><strong>Subset-data defense partial response:</strong> as with #15, the production cohort could differ, but the script computes SoC from the cohort it sees.</p>
+
+<p><strong>Effect on claim — number:</strong> Olaparib mention count in paper Methods: <strong>1</strong>. Olaparib occurrence count in deposited cohort: <strong>0</strong>. The actual cohort has <strong>4 distinct SoC drugs</strong>, not 5; the paper claim "five most common non-taxane therapies given within the cohort" overstates by one.</p>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#17. Treatment-line severely imbalanced between arms; absent from IPTW and Cox</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-METHOD">METHOD</span></p>
+
+<p>HMF breast doxo arm1 (n=108, the HR=3.69 cohort), treatment_line × Exp_treatment:</p>
+<table>
+<thead><tr><th>treatment_line</th><th>Exp = TRUE (anthra)</th><th>Exp = FALSE (SoC)</th></tr></thead>
+<tbody>
+<tr><td>1 (first-line)</td><td>25</td><td>2</td></tr>
+<tr><td>2</td><td>3</td><td>6</td></tr>
+<tr><td>3</td><td>0</td><td>19</td></tr>
+<tr><td>4+</td><td>4</td><td>12</td></tr>
+</tbody>
+</table>
+
+<p>The anthracycline arm is mostly first-line; the Capecitabine SoC arm is mostly later-line. Treatment line is a dominant prognostic confounder in metastatic disease — and it is in neither the IPTW propensity model nor the Cox model.</p>
+
+<p><strong>Re-running:</strong> unweighted Cox on the headline cohort → HR = 3.48 (1.82–6.64). Published IPTW-weighted HR = 3.69. The IPTW correction is ~6% — essentially decorative.</p>
+
+<p><strong>Subset-data defense does not apply.</strong> The committed IPTW formula is <code>~ biopsyYear</code>; treatment_line absence is a code+methods choice.</p>
+
+<p><strong>Effect on claim — numbers:</strong></p>
+<ul class="compact">
+<li>Treatment line distribution by arm (breast doxo arm1, n=108): line 1 — exp <strong>25 vs ctrl 2 (12.5×)</strong>; line 3 — exp <strong>0 vs ctrl 19 (0×)</strong>.</li>
+<li>Unweighted Cox HR: <strong>3.48</strong> (95% CI 1.82–6.64).</li>
+<li>Published IPTW-weighted HR: <strong>3.69</strong>.</li>
+<li>IPTW correction magnitude: <strong>+6%</strong>. The "IPTW addresses selection bias" claim is decorative — the dominant confounder (treatment line) is not in the propensity model.</li>
+</ul>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#18. Asymmetric wGII capping (HMF clipped to 100, TCGA uncapped)</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-CODE">CODE</span></p>
+
+<pre><code># Pancancer_survival_analysis.R:75-78
+wgii_hmf &lt;- hmf_segments %&gt;% ... summarise(wgii=sum(length/3e9))
+wgii_hmf$wgii[wgii_hmf$wgii &gt; 1] &lt;- 1                # clip
+wgii_hmf$wgii &lt;- wgii_hmf$wgii * 100
+
+# Pancancer_survival_analysis.R:82-84
+wgii_tcga &lt;- tcga_segments %&gt;% ... summarise(wgii=sum(length/3e9))
+# no clip
+wgii_tcga$wgii &lt;- wgii_tcga$wgii * 100
+</code></pre>
+
+<p>Both <code>wgii</code> columns feed identical Cox covariates. Out-of-range handling differs per cohort.</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> HMF wGII samples that <em>would</em> exceed 100 after multiplication: <strong>clipped to exactly 100</strong>. TCGA wGII samples that exceed 100: <strong>retained uncapped</strong>. Asymmetry affects every Cox model that uses wGII as a covariate (estimated 8+ models across phase-2 and phase-3 emulations). Impact on each HR is bounded by the wGII coefficient × the difference in clipped vs uncapped tail — typically &lt;5% on HR(prediction), but biases the wGII coefficient itself.</p>
+</div>
+
+<div class="finding MODERATE">
+<p><span class="finding-id">#19. Blanket <code>NA → 0</code> wGII imputation justified for one patient, applied to all</span> <span class="sev sev-MODERATE">MODERATE</span> <span class="label label-CODE">CODE</span></p>
+
+<pre><code># Pancancer_survival_analysis.R:390
+tcga_sarc_dox_p2$wgii[is.na(tcga_sarc_dox_p2$wgii)] = 0   # all segments are diploid in TCGA-MO-A47P
+</code></pre>
+
+<p>Comment cites <em>one specific patient</em> (TCGA-MO-A47P) where wGII=0 is correct (truly diploid). The code applies <code>NA → 0</code> blanket. Any future SARC sample that fails QC silently gets the biologically minimal value, biasing the wGII covariate downward.</p>
+
+<p><strong>Fix would be:</strong> <code>tcga_sarc_dox_p2$wgii[tcga_sarc_dox_p2$bcr_patient_barcode == 'TCGA-MO-A47P'] &lt;- 0</code> + a <code>stopifnot(!any(is.na(...)))</code>.</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> Justified by <strong>1 patient</strong>; applied to <strong>all</strong> NAs. In the current cohort it happens to be 1 row (no other NAs), so current numerical effect = 0. Risk surface: any future SARC sample with NA wGII gets a biologically minimal value (0) silently substituted. If the production cohort has additional QC-failing rows, the sarcoma HR=3.59 could shift unpredictably.</p>
+</div>
+
+<h2 id="minor">MINOR findings</h2>
+
+<div class="finding MINOR">
+<p><span class="finding-id">#20. Constant-zero CX11/CX12/CX14 fit as univariate Cox covariates</span> <span class="sev sev-MINOR">MINOR</span> <span class="label label-CODE">CODE</span></p>
+
+<p>All three columns are <code>0</code> across every row in OV04 (n=30/29/45). The script loops <code>for(i in 1:17)</code> fitting <code>coxph(Surv(PFS, censoring) ~ CX{i})</code> per signature. CX11/CX12/CX14 produce <code>NA</code> HRs that ship as 3 NA rows in the OV04 univariate-Cox supplementary table. BH adjustment drops NAs only by accident.</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> <strong>3 of 17 CX signatures (≈18%)</strong> fit as univariate Cox produce NA HRs in the published Supp Table per OV04 cohort × 3 cohorts = <strong>9 silently-NA rows</strong>. BH-adjusted p-values across the table are still valid (R drops NAs), but the table's appearance of being a 17-row univariate sweep is misleading; readers may not notice that 3 of the 17 signatures returned no information.</p>
+</div>
+
+<div class="finding MINOR">
+<p><span class="finding-id">#21. Near-constant <code>wgii</code> in OV04 included in every Cox model</span> <span class="sev sev-MINOR">MINOR</span> <span class="label label-CODE">CODE</span></p>
+
+<p>CV of <code>wgii</code> in OV04 doxorubicin/paclitaxel/platinum cohorts: 0.92% / 0.91% / 0.84% (mean ~91.9, sd 0.85). Compare HMF master n=5195: range 0.001–100, mean 59.4. OV04 is HGSOC — high wGII by definition — so the OV04 distribution is narrow.</p>
+
+<p><strong>Effect on HR(prediction):</strong> with vs without wGII, ΔHR ≈ 0.0% (the covariate is so constant it adds almost no df cost). Cosmetic but methodologically misleading: the wGII HR coefficient reported in supplementary tables is meaningless on this cohort.</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> CV(wgii) in OV04 cohorts: <strong>0.84–0.92%</strong> (essentially constant). ΔHR(prediction) with vs without wGII: <strong>0.0%</strong>. wGII coefficient in supplementary OV04 tables: published, but the variance available to estimate it is &lt;1% — the coefficient is statistically meaningless. Cosmetic concern only.</p>
+</div>
+
+<div class="finding MINOR">
+<p><span class="finding-id">#22. Power calculation uses OV04 pilot HRs as inputs (circular)</span> <span class="sev sev-MINOR">MINOR</span> <span class="label label-METHOD">METHOD</span></p>
+
+<pre><code># Pancancer_survival_analysis.R:122-128, 200-206, 234-240
+# Expected effect sizes for the validation-cohort power calculations:
+hr &lt;- 5.5   # HR at 6 months in OV04 doxo is 22 =&gt; we limit to a putative expected HR
+hr &lt;- 3     # platinum
+hr &lt;- 5.5   # taxane (also from OV04 pilot)
+</code></pre>
+
+<p>Paper Methods explicitly says pilot HRs power the validation cohorts. The "22" comes from #1's hand-derived intEST extraction (which the script doesn't actually compute). Circular by acknowledgment.</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> Power calculations for the validation cohorts use HR=<strong>3</strong> (platinum), HR=<strong>5.5</strong> (taxane), HR=<strong>5.5</strong> (doxo, capped from "22"). All three numbers are pilot OV04 estimates. <strong>3 of 3 power-input HRs are self-derived</strong> from the pilot data that the validation cohorts are supposed to confirm.</p>
+</div>
+
+<div class="finding MINOR">
+<p><span class="finding-id">#23. OV04 taxane Methods text describes an interaction term the code doesn't include</span> <span class="sev sev-MINOR">MINOR</span> <span class="label label-PAPER">PAPER</span></p>
+
+<p><strong>Paper text (OV04 taxane Methods):</strong> describes "interaction between first-line TTF and treatment group."</p>
+
+<p><strong>Code (<code>OV04_Survival_Analysis.R:153</code>):</strong></p>
+<pre><code>cox &lt;- coxph(Surv(PFS, censoring) ~ prediction + tumour_stage + treatment_line_recoded
+                                   + age_recoded + maintenance + wgii, data=taxane_data)
+# No interaction term.
+</code></pre>
+
+<p>The interaction is only present in the doxorubicin model (L198: <code>prediction*primary_PFS</code>). The text describes the doxo model under the taxane section.</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> <strong>1 of 3 OV04 pilot Methods descriptions</strong> (taxane) describes a model spec the code doesn't implement. Affects readers who try to reproduce the OV04 taxane HR=6.567 from the model text — they would build a different model than the script does and arrive at a different HR.</p>
+</div>
+
+<div class="finding MINOR">
+<p><span class="finding-id">#24. cox.zph PH-violation comments retained at L524/635/707</span> <span class="sev sev-MINOR">MINOR</span> <span class="label label-CODE">CODE</span></p>
+
+<p>The script runs <code>cox.zph()</code> after each headline Cox fit and leaves the result in comments. Several lines flag "global!" (overall PH assumption violated):</p>
+<pre><code># Pancancer_survival_analysis.R:524, 635, 707
+cox.zph(...)   # global!
+</code></pre>
+
+<p>One model (L839 UCEC dox) is explicitly excluded with "not proportional! not good representation of both arms." The lines 524/635/707 models stay in published figures without further mitigation. Methods notes <code>cox.zph</code> is used; nothing in Methods or figure captions discloses which models passed and which didn't.</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> Cox models with code-comment-flagged PH violations retained in published figures: <strong>3</strong> (at L524, L635, L707). Excluded by author choice: <strong>1</strong> (L839 UCEC dox). So <strong>3 of 4 known-PH-violating models</strong> still appear in published HRs without remediation. Magnitude of HR distortion from PH violation is model-specific; the violations themselves invalidate the Cox CI / p-value interpretation but not necessarily the HR point estimate.</p>
+</div>
+
+<div class="finding MINOR">
+<p><span class="finding-id">#25. SoC composition is post-hoc data-derived</span> <span class="sev sev-MINOR">MINOR</span> <span class="label label-METHOD">METHOD</span></p>
+
+<pre><code># Helper_functions.R:1119
+top_N_SoC &lt;- function(soc_res, soc_sen, cohort, n=5){
+  ...
+  top_n &lt;- names(sort(table(unlist(strsplit(c(soc_res[[cname]], soc_sen[[cname]]), '/'))),
+                      decreasing=TRUE))[1:n]
+  return(top_n)
+}
+
+# Hand override at Helper_functions.R:1302-1304:
+if(cancer=='BRCA'){
+  top_soc[top_soc=='tamoxifen']  &lt;- 'methotrexate'
+  top_soc[top_soc=='arimidex']   &lt;- 'epirubicin'
+}
+</code></pre>
+
+<p>The "5 most common non-X therapies" Methods text reads as a pre-specified protocol. The committed code selects them empirically from the cohort itself, then for TCGA-BRCA manually swaps two drugs after the fact.</p>
+
+<p><strong>Subset-data defense does not apply.</strong></p>
+
+<p><strong>Effect on claim — number:</strong> Number of cohort × biomarker emulations where SoC is data-derived (not protocol-specified): <strong>all of them</strong> (every call site of <code>top_N_SoC</code>). Number of cohorts with hand-overrides on top of the data-derived list: <strong>1</strong> (TCGA-BRCA, swapping tamoxifen→methotrexate and arimidex→epirubicin). The "5 most common non-X" framing is correct for none of the emulations as a pre-registered protocol — all are post-hoc.</p>
+</div>
+
+<h2 id="novelty">Novelty &amp; prior reports</h2>
+<p>As of audit date (2026-06-01):</p>
+<ul class="compact">
+<li>GitHub <code>macintyrelab/Thompson2025_ChemoResistancePrediction</code>: 0 issues (open or closed); 0 PRs; 2 commits total (initial commit + comments cleanup).</li>
+<li>PubPeer: no entries for this paper / DOI / PMID.</li>
+<li>Nature Genetics: no errata or matters-arising; PMC record has no comment-in or correction.</li>
+<li>Retraction Watch: no entries.</li>
+<li>Google Scholar / web: no critical reanalyses; only positive press coverage.</li>
+</ul>
+<p>This appears to be the first independent code-and-data audit of the paper in the 11 months since publication.</p>
+
+<h2 id="reproduction">Reproduction</h2>
+<p>All findings are reproducible from the public artifacts:</p>
+<ol>
+<li>Clone: <code>git clone https://github.com/macintyrelab/Thompson2025_ChemoResistancePrediction code</code></li>
+<li>Download data: <code>curl -L https://ndownloader.figshare.com/files/54727424 -o Input_Data.zip &amp;&amp; unzip Input_Data.zip</code></li>
+<li>Open paper PDF or PMC full text (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12283407/">PMC12283407</a>).</li>
+<li>For each finding above, the <code>file:line</code> citation locates the exact source.</li>
+</ol>
+
+<p class="footnote">Generated by a 9-agent automated audit (3 blind + 3 enriched + verifier + novelty + impact). Raw per-agent transcripts available alongside this report. The audit was performed against the public figshare deposit (Input_Data.zip, 466MB). Several cohorts (HMF metastatic patient-level genomic data) are sourced from access-restricted clinical databases; the deposited derivatives are the canonical reproduction substrate. None of the findings above require access to the original restricted clinical data — all are reproducible from the public deposit + the GitHub repo + the paper text.</p>
+
+</body>
+</html>

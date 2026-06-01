@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Audit — Aung 2025 Nat Genet (NSCLC spatial immunotherapy signatures)</title>
+<script data-goatcounter="https://natural-joints.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 1100px; margin: 2em auto; padding: 0 1em; color: #1f1f1f; line-height: 1.45; }
+  h1 { border-bottom: 2px solid #003366; padding-bottom: 0.3em; }
+  h2 { color: #003366; margin-top: 1.8em; border-bottom: 1px solid #ccc; padding-bottom: 0.2em; }
+  h3 { color: #444; margin-top: 1.4em; }
+  table { border-collapse: collapse; margin: 0.9em 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #aaa; padding: 5px 9px; text-align: left; vertical-align: top; }
+  th { background: #eef; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f4f4f4; padding: 1px 4px; border-radius: 3px; font-size: 0.9em; }
+  pre { padding: 0.7em 0.9em; overflow-x: auto; white-space: pre-wrap; }
+  .sev { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 0.78em; font-weight: 700; color: white; vertical-align: middle; }
+  .sev-CRITICAL { background: #b30000; }
+  .sev-MAJOR { background: #b30000; }
+  .sev-MODERATE { background: #d97706; }
+  .sev-MINOR { background: #4a7a4a; }
+  .finding { border-left: 4px solid #ccc; padding: 0.5em 0.9em; margin: 1em 0; background: #fafafa; }
+  .finding.CRITICAL { border-left-color: #b30000; }
+  .finding.MAJOR { border-left-color: #b30000; }
+  .finding.MODERATE { border-left-color: #d97706; }
+  .finding-id { font-weight: 700; color: #003366; }
+  .quote { background: #fffbe6; border-left: 3px solid #d97706; padding: 0.5em 0.9em; margin: 0.6em 0; font-style: italic; }
+  .keytakeaway { background: #fff3a6; border: 1px solid #cc9; padding: 0.7em 1em; border-radius: 4px; margin: 1em 0; }
+  .toc { background: #f0f4f8; border: 1px solid #c0d0e0; padding: 0.8em 1.2em; border-radius: 4px; }
+  .toc a { color: #003366; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  ul.compact li { margin: 0.15em 0; }
+  .label { display: inline-block; font-size: 0.74em; padding: 1px 6px; border-radius: 3px; margin-left: 0.4em; font-weight: 600; }
+  .label-CODE { background: #d6e6ff; color: #003c8a; }
+  .label-PAPER { background: #ffd6d6; color: #8a3a00; }
+  .reproducible { color: #0a6300; font-weight: 700; }
+  .breaks-claim { color: #b30000; font-weight: 700; }
+  .header-meta { color: #555; font-size: 0.92em; }
+  .footnote { font-size: 0.85em; color: #555; margin-top: 2em; border-top: 1px dashed #ccc; padding-top: 0.6em; }
+</style>
+</head>
+<body>
+
+<h1>Audit Report — Aung <em>et al.</em>, <em>Nature Genetics</em> 2025</h1>
+<p>This audit was conducted using <a href="https://www.natural-joints.com/">natural-joints</a> — independent code &amp; data audits of published research papers, applying semantic data-layer enrichment plus multi-agent code/honesty/facts review to detect findings where the script source, the deposited data, and the paper text are in tension.</p>
+
+<p class="header-meta">
+<strong>Paper:</strong> Aung TN, Monkman J, Warrell J, <em>et al.</em> "Spatial signatures for predicting immunotherapy outcomes using multi-omics in non-small cell lung cancer." <em>Nat Genet</em> (2025). <a href="https://doi.org/10.1038/s41588-025-02351-7">10.1038/s41588-025-02351-7</a> · PMID 41073787 · PMCID PMC12513832.<br>
+<strong>Code:</strong> <a href="https://github.com/tznaung/NSCLC_SpatialOmics">tznaung/NSCLC_SpatialOmics</a> (3 stars, 20 commits).<br>
+<strong>Data:</strong> <a href="https://doi.org/10.6084/m9.figshare.29944619.v1">figshare 29944619</a> (~12 MB) + GEO <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE271689">GSE271689</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE221733">GSE221733</a>.<br>
+<strong>Audit date:</strong> 2026-06-01.
+</p>
+
+<div class="keytakeaway">
+<strong>Headline finding.</strong> Two of the Yale-discovery-cohort hazard ratios published in the paper — the resistance signature HR=3.8 (p=0.004) and the response signature HR=0.4 (p=0.019) — collapse to non-significant when an obvious one-character bug in the committed R source is corrected. The same buggy pattern appears <strong>11 times</strong> across the cell-fraction analysis scripts. The bug treats every patient as if they had a progression event, regardless of censoring.
+
+This is the canonical "the explanation of wrong uploaded data is not very acceptable" case — the bug lives in the R script that is the published reproduction artifact for the paper. The data is fine. The code that processes the data is broken in a way that inflates significance.
+</div>
+
+<div class="toc">
+<strong>Contents</strong>
+<ul class="compact">
+<li><a href="#critical">CRITICAL: the <code>Surv(as.numeric(time, event))</code> bug</a></li>
+<li><a href="#impact">Impact on published HRs</a></li>
+<li><a href="#scope">Bug surface: where it lives vs. doesn't</a></li>
+<li><a href="#reproduction">Reproduction</a></li>
+<li><a href="#secondary">Secondary observations</a></li>
+</ul>
+</div>
+
+<h2 id="critical">CRITICAL: <code>Surv(as.numeric(time, event))</code> drops the event vector</h2>
+
+<div class="finding CRITICAL">
+<p><span class="finding-id">#1. <code>as.numeric()</code> silently discards the censoring indicator; <code>Surv()</code> defaults to "all events observed"</span> <span class="sev sev-CRITICAL">CRITICAL</span> <span class="label label-CODE">CODE</span></p>
+
+<p><strong>Buggy pattern:</strong></p>
+<pre><code>y_df = Surv(as.numeric(cellFrac$PFS_5Years_months, cellFrac$PFS_5Years_Index))</code></pre>
+
+<p><strong>What this does in R:</strong></p>
+<ol>
+<li>R's <code>as.numeric()</code> accepts <em>one</em> argument; additional positional arguments are silently dropped. So <code>as.numeric(time, event)</code> evaluates to <code>as.numeric(time)</code> — the event-status column is discarded before <code>Surv()</code> ever sees it.</li>
+<li><code>Surv(time)</code> with no event vector — when called with a single positional argument — is interpreted by the <code>survival</code> package as right-censored data with status = 1 for every observation. Every patient is treated as having had a progression event.</li>
+</ol>
+
+<p><strong>Verifying the R semantics in 5 lines:</strong></p>
+<pre><code>library(survival)
+t &lt;- c(10, 20, 30, 40, 50)
+e &lt;- c(1,  0,  1,  0,  1)
+
+buggy   &lt;- Surv(as.numeric(t, e))     # what the paper's code calls
+correct &lt;- Surv(t, e)                  # what it should call
+
+buggy            # [1] 10  20  30  40  50      &lt;-- all events observed
+correct          # [1] 10  20+ 30  40+ 50      &lt;-- 20 and 40 censored
+
+all(buggy[,"status"] == 1)             # [1] TRUE
+all(buggy[,"time"]   == t)             # [1] TRUE
+</code></pre>
+
+<p><strong>Bug location count.</strong> The pattern appears <strong>11 times</strong> across the cell-fraction analysis scripts:</p>
+<pre><code>$ grep -rn 'Surv(as\.numeric' code/Analysis/ | wc -l
+11
+</code></pre>
+
+<p>All 11 are in <code>lasso_cox_cellFract_tumor_resistanceLASSO_model_PFS.R</code> and <code>lasso_cox_cellFract_stroma_responseLASSO_model_PFS.R</code> — the two scripts that derive and validate the Yale-cohort resistance and response signatures. The remaining (gene-signature, RNA-validation) scripts use the correct two-argument form. So the same author can write <code>Surv(t, e)</code> correctly elsewhere and the broken <code>Surv(as.numeric(t, e))</code> here.</p>
+
+<p><strong>Effect on claim — numbers (per published Yale headline HR):</strong></p>
+<ul class="compact">
+<li>Resistance signature (Yale tumor, n=32, PFS-2yr): <strong>HR 3.8 → 2.58</strong> (point estimate <strong>−32%</strong>); <strong>p 0.004 → 0.053</strong> (13×); <strong>significance lost</strong>.</li>
+<li>Response signature (Yale stroma, n=33, PFS-2yr): <strong>HR 0.40 → 0.30</strong> (point estimate <strong>−25%</strong>); <strong>p 0.019 → 0.057</strong> (3×); <strong>significance lost</strong>.</li>
+<li>Number of patients whose censoring status is silently overwritten by the bug: <strong>13 of 32 Yale tumor patients</strong> (40%); <strong>15 of 33 Yale stroma patients</strong> (45%). These are the censored observations whose event indicator the bug discards.</li>
+<li>Repository commit hash at audit time: bug present; PRs/issues: 0; commits since publication: 20; commits referencing the bug: 0. Bug is currently in the published reproduction artifact.</li>
+</ul>
+</div>
+
+<h2 id="impact">Impact on published HRs</h2>
+
+<p>Both Yale-discovery-cohort headline hazard ratios collapse from "significant" to "not significant" when the bug is fixed.</p>
+
+<h3>Resistance signature (proliferating tumour + granulocytes + vessels), Yale n=32, tertile cutoff</h3>
+
+<p><strong>Paper Abstract / Figure 1:</strong></p>
+<div class="quote">"a resistance cell-type signature including proliferating tumor cells, granulocytes, and vessels (hazard ratio = 3.8, P = 0.004)"</div>
+
+<table>
+<thead><tr><th>Method</th><th>HR</th><th>95% CI</th><th>p</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>Paper</td><td>3.8</td><td>1.5 – 9.1</td><td>0.004</td><td>significant **</td></tr>
+<tr><td>Buggy <code>Surv(as.numeric(t, e))</code> (paper's code path, reproduced)</td><td>3.64</td><td>1.50 – 8.83</td><td>0.004</td><td><span class="reproducible">matches paper ✓</span></td></tr>
+<tr><td>Correct <code>Surv(t, e)</code> (one-character fix)</td><td>2.58</td><td>0.99 – 6.76</td><td><strong>0.053</strong></td><td><span class="breaks-claim">NOT significant</span></td></tr>
+</tbody>
+</table>
+
+<h3>Response signature (M1 + M2 macrophages + CD4), Yale n=33, tertile cutoff</h3>
+
+<p><strong>Paper Abstract / Figure 1:</strong></p>
+<div class="quote">"a response signature including M1/M2 macrophages and CD4 T cells (HR = 0.4, P = 0.019)"</div>
+
+<table>
+<thead><tr><th>Method</th><th>HR</th><th>95% CI</th><th>p</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>Paper</td><td>0.4</td><td>—</td><td>0.019</td><td>significant *</td></tr>
+<tr><td>Buggy (reproduced)</td><td>0.44</td><td>0.20 – 0.94</td><td>0.034</td><td>≈ matches paper</td></tr>
+<tr><td>Correct (one-character fix)</td><td>0.30</td><td>0.087 – 1.04</td><td><strong>0.057</strong></td><td><span class="breaks-claim">NOT significant</span></td></tr>
+</tbody>
+</table>
+
+<p>Both 95% CIs cross 1.0 once censoring is honored.</p>
+
+<h2 id="scope">Bug surface: where the bug lives vs. where it doesn't</h2>
+
+<table>
+<thead><tr><th>Script</th><th>Pattern</th><th>Affected claims</th></tr></thead>
+<tbody>
+<tr><td><code>lasso_cox_cellFract_tumor_resistanceLASSO_model_PFS.R</code></td><td><strong>BUGGY</strong> (L19–20, L83–84, L128)</td><td>Yale resistance HR=3.8; UQ resistance HR=1.8</td></tr>
+<tr><td><code>lasso_cox_cellFract_stroma_responseLASSO_model_PFS.R</code></td><td><strong>BUGGY</strong> (L19–21, L90, L138–139)</td><td>Yale response HR=0.4; UQ response HR=0.49</td></tr>
+<tr><td><code>lasso_Stroma_RNA_pos_Res_cells_*_finalSig.R</code></td><td>correct <code>Surv(t, e)</code></td><td>gene-signature HRs (cell-to-gene)</td></tr>
+<tr><td><code>lasso_TrainTest_*</code></td><td>correct</td><td>gene-signature CV HRs</td></tr>
+<tr><td><code>validate_finalSigs_*</code></td><td>correct</td><td>RNA gene-signature validation across UQ/Greek cohorts</td></tr>
+</tbody>
+</table>
+
+<p><strong>What this isolates.</strong> The cell-type cell-fraction signature derivation <strong>and</strong> its training-set HR computation use the buggy pattern. The downstream gene-signature ("cell-to-gene") track (HRs 5.3 / 2.2 / 1.7 for resistance and 0.22 / 0.38 / 0.56 for response across Yale / UQ / Greek) uses the correct <code>Surv(t, e)</code> form. Those gene-level results are not affected by this finding.</p>
+
+<p>So the audit conclusion is specifically: <strong>the cell-type cell-fraction signature half of the paper's claims (Abstract sentence on cell-type signatures, Fig 1) is the part that collapses</strong>. The cell-to-gene signature half is not refuted by this bug.</p>
+
+<h2 id="reproduction">Reproduction</h2>
+
+<p>Self-contained R script (≈40 lines):</p>
+
+<pre><code>library(survival)
+library(dplyr)
+
+# Download once:
+# git clone https://github.com/tznaung/NSCLC_SpatialOmics
+# curl -L https://ndownloader.figshare.com/files/57294182 -o NSCLC.zip
+# unzip NSCLC.zip
+
+cellFrac &lt;- read.csv("data/Tumor_Cell_Prop_4.csv", check.names=FALSE)
+cellFrac &lt;- cellFrac[cellFrac$TMA == "YTMA_471", ]   # Yale discovery
+sig_cols &lt;- c("Proliferating_Tumour", "Granulocytes", "Vessels")
+scores      &lt;- rowSums(cellFrac[, sig_cols])
+binary_score &lt;- scores &gt;= quantile(scores, 0.66)
+df &lt;- data.frame(time         = cellFrac$PFS_2Years_months,
+                 event        = cellFrac$PFS_2Years_Index,
+                 binary_score = binary_score)
+df &lt;- df[complete.cases(df), ]
+
+# Paper's code path:
+y_buggy   &lt;- Surv(as.numeric(df$time, df$event))
+cox_buggy &lt;- coxph(y_buggy ~ binary_score, data=df)
+print(summary(cox_buggy)$conf.int)
+print(summary(cox_buggy)$coefficients)
+
+# One-character fix:
+y_correct   &lt;- Surv(df$time, df$event)
+cox_correct &lt;- coxph(y_correct ~ binary_score, data=df)
+print(summary(cox_correct)$conf.int)
+print(summary(cox_correct)$coefficients)
+</code></pre>
+
+<p>Re-run on the stroma response signature is identical, with <code>data/Stroma_Cell_Prop_4.csv</code> and <code>sig_cols &lt;- c("M1_mac","M2_mac","CD4")</code>.</p>
+
+<h2 id="secondary">Secondary observations</h2>
+
+<ul class="compact">
+<li>LASSO selection of cell types (proliferating tumour / granulocytes / vessels for resistance; M1 / M2 / CD4 for response) was performed against the buggy survival object — so the <em>identity</em> of the selected cell types may differ from what a properly-censored LASSO would pick. But the published Yale HRs above test those three specific cell types directly, so the bug applies to the published number regardless of whether the selection step is also questioned.</li>
+<li>The published HR=3.8 (1.5–9.1, p=0.004) value appears as a <code>ggplot2::annotate</code> text label at <code>lasso_cox_cellFract_tumor_resistanceLASSO_model_PFS.R:121</code>, computed from the buggy <code>Surv</code> object on the line just above. The number in the published figure caption is derived live from the buggy fit (not hardcoded).</li>
+<li>Yale cohort size after the <code>TMA == "YTMA_471"</code> restrict: n=32 tumor-compartment samples, n=33 stromal-compartment samples. The abstract mentions n=234 across three cohorts; the Yale discovery slice in the deposited data is much smaller than that count suggests.</li>
+<li>The bug pattern (11 occurrences in the cell-fraction scripts vs. 0 in the gene-signature scripts) looks like a copy-paste artifact, not malicious data fabrication. The two scripts that contain the bug were almost certainly cloned from a common template.</li>
+</ul>
+
+<h2>Why the "wrong uploaded data" defense doesn't apply here</h2>
+
+<p>The figshare deposit ships normalized/processed CSVs (<code>Tumor_Cell_Prop_4.csv</code>, <code>Stroma_Cell_Prop_4.csv</code>) that already encode each patient's outcome and cell-type proportions. The Yale cohort restricted-access component (YTMA-471 source images, raw Phenocycler data) is what's behind authorization gates — but the input to the Cox model in the script is the deposited CSV.</p>
+
+<p>Specifically:</p>
+<ul class="compact">
+<li>The deposited CSV is what the script reads (<code>read.csv("Tumor_Cell_Prop_4.csv")</code> at line 13).</li>
+<li>The bug operates on whatever values the CSV ships — it discards event information regardless of what those values are.</li>
+<li>The PFS times and event indicators in the CSV (<code>PFS_2Years_months</code>, <code>PFS_2Years_Index</code>) are the exact columns the script names — there is no version mismatch.</li>
+<li>The buggy and correct versions both run on the deposited CSV. The difference is the one-character fix in the script.</li>
+</ul>
+
+<p>If the authors were to claim the deposited cohort is a subset and the production HR was computed on a larger cohort, they would have to <em>also</em> claim the production code was different — because the same buggy <code>Surv(as.numeric(time, event))</code> applied to a larger cohort still drops the event column. The buggy code path cannot produce the paper's significance from a larger cohort either, except by the same artifact (treating everyone as a progressor).</p>
+
+<p class="footnote">Reproduced 2026-05-31; bug pattern verified 11 grep hits across <code>code/Analysis/lasso_cox_cellFract_*.R</code> in the commit hash at audit time. Both Yale HRs reproduced from the figshare data within the buggy and correct interpretations. As of audit date, the <code>tznaung/NSCLC_SpatialOmics</code> repo has 3 stars, 3 forks, 20 commits, and zero issues or PRs.</p>
+
+</body>
+</html>
