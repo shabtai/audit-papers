@@ -62,58 +62,69 @@ Audit conducted with natural-joints (https://www.natural-joints.com/) — indepe
 
 **Paper:** *"Predicting resistance to chemotherapy using chromosomal instability signatures"* — Thompson et al., *Nat Genet* 2025. https://doi.org/10.1038/s41588-025-02233-y (PMID 40551015)
 
-A published Nature Genetics figure shows a hazard ratio that the paper's own committed R code cannot produce.
+A published Nature Genetics paper tests an "anthracycline-resistance biomarker" in a cohort where 87% of the patients also received platinum chemotherapy — and the biomarker's training labels were derived from platinum-response priors. The platinum confounder is not adjusted for. So the validation result is consistent with the biomarker being a repackaged platinum-response classifier.
 
-The figure: Fig 2c, OV04 anthracycline pilot study. Published HR = **20.020** (95% CI 1.059–378.6, p=0.010).
+The data (OV04 doxorubicin pilot study, Fig 2c, n=30):
 
-The script (`OV04_Survival_Analysis.R`, lines 198–209):
-
-```r
-# Line 198: fit the Cox model the comment will reference
-cox <- coxph(Surv(PFS, censoring) ~ prediction*primary_PFS + tumour_stage +
-             age_recoded + maintenance + wgii, data=doxo_data)
-
-# Lines 201-204: comments documenting how Fig 2c was generated
-# We used intEST function of the interactionRCS package to obtain the HR of the prediction
-# over the different primary_PFS at 6 months
-# HR at 6 months = 20.020 (1.059-378.635)
-# We plot this HR for the main figure
-
-# Lines 207-209: the actual figure-prep code
-dox_cox_df$`exp(coef)`[dox_cox_df$variate=="prediction"] = 20.020
-dox_cox_df$`lower .95`[dox_cox_df$variate=="prediction"] = 1.059
-dox_cox_df$`upper .95`[dox_cox_df$variate=="prediction"] = 378.635
+```
+plat_cotherapy distribution in OV_tissue_doxorubicin_predictions.csv:
+True     26   (86.7% — patients who received concurrent platinum)
+False     4   (13.3% — patients who got doxorubicin without platinum)
 ```
 
-There is no `intEST()` call anywhere in the repository. The `interactionRCS` package is never loaded. The three numbers are literal numeric assignments — hand-typed into the script.
+The Cox model (`OV04_Survival_Analysis.R:198`):
 
-Running the committed `coxph()` formula on the deposited CSV gives HR = **344** (95% CI 4.57–25,922). The 17× discrepancy isn't a "demo data vs production data" issue — the literals run on any input and produce the same triple regardless of cohort.
+```r
+cox <- coxph(Surv(PFS, censoring) ~ prediction*primary_PFS + tumour_stage +
+                                    age_recoded + maintenance + wgii,
+             data=doxo_data)
+```
 
-The same hardcoded-triple pattern recurs at `Pancancer_survival_analysis.R:988-990` for a different OV04 cohort. The script's documented method is not the script's actual computation.
+Covariates: tumour_stage, age_recoded, maintenance, wgii. The column `plat_cotherapy` is in the CSV but never appears anywhere in the script — not as a covariate, not in any sensitivity analysis, not in any robustness check.
+
+The paper's Methods explicitly describes how the training labels for the anthracycline biomarker were assigned (verbatim):
+
+> *"platinum-resistant patients are expected to have an 18% response rate to doxorubicin monotherapy ... whereas sensitive patients have a 28% response rate."*
+
+So the biomarker was trained against labels derived from platinum response in patient-derived models, then validated in a cohort where 87% of patients also received platinum cotherapy, with that cotherapy not adjusted for in the survival model.
+
+The 4 patients who received doxorubicin without platinum are too few to support a clean restricted analysis. The platinum-adjusted analysis is not done. The headline finding sits on top of an uncorrected confounder that's stronger than any covariate in the Cox formula.
+
+**This isn't a typo defense.** The plat_cotherapy values are in the deposit; the Cox model is in the committed script; the literature priors for label assignment are in the paper Methods. All three are intact and all three line up the same way: an anthracycline biomarker trained on platinum-response labels and validated in a platinum-co-treated cohort.
+
+This was surfaced because the semantic enricher resolved `plat_cotherapy` as *"Boolean flag indicating whether the patient received platinum-based therapy as a concurrent treatment (cotherapy) alongside doxorubicin"* — a meaning that's not derivable from the True/False values alone. An auditor looking at the Cox formula without that column-meaning has no reason to ask "what about platinum cotherapy?" — the enrichment is what made the question askable.
 
 ---
 
 **Plain language for non-statisticians:**
 
-In drug-resistance research, the headline statistic is the *hazard ratio* — roughly, how much faster patients in one group reach a bad outcome compared to another. HR = 1.0 means no difference. HR = 2.0 means twice the risk. HR = 20 would mean the resistant group hits the bad outcome about twenty times faster — an extraordinary claim that should change clinical practice.
+The paper proposes a genetic test that — they claim — predicts whether ovarian-cancer patients will respond to anthracycline (doxorubicin) chemotherapy. The validation experiment uses 30 patients from the OV04 trial.
 
-Standard scientific practice is: the figure shows the number, and the code shows how the number was calculated from the data. If you can't compute the number from the code, you can't really check it.
+Two facts about those 30 patients are not foregrounded in the paper:
 
-Here, the script *claims* it used a specific statistical function (`intEST`) to derive HR=20.020. But that function is never called. Instead, the script hand-types the number 20.020 directly into the figure dataframe — bypassing any actual computation. Anyone running the published code gets a different number; the figure shows the hand-typed value.
+1. **Training labels came from a different drug.** The genetic test was developed using lab-grown tissue from patients whose response to *platinum* (a different drug) had been observed. Patients whose platinum response was poor were labeled "resistant" in training; patients with better platinum response were labeled "sensitive." Doxorubicin response itself was not directly measured for training.
 
-The deeper issue: the published number could have come from somewhere. Maybe a quick calculation on a different computer. Maybe an earlier version of the analysis. We can't tell — because the work that allegedly produced 20.020 isn't anywhere in the public record.
+2. **Validation patients mostly received platinum too.** Of the 30 validation patients, 26 received platinum chemotherapy alongside doxorubicin. Only 4 received doxorubicin without platinum.
 
-A more cautious figure would have shown the Cox model's actual output. That output has a 95% confidence interval spanning 4.6 to about 25,000 — meaning the data is consistent with a tiny effect, an enormous effect, and almost anything in between. With 30 patients and 28 progression events, the data simply doesn't pin down the effect tightly. The published "HR=20" looks dramatic; the honest version would be "we can't tell."
+So the test was trained on labels that reflect platinum behavior, and validated in patients who almost all got platinum. The validation experiment's Cox model adjusts for things like tumor stage, age, and maintenance therapy — but not for the platinum cotherapy.
+
+In a clinical context: imagine testing a "blood-pressure medication response predictor" in a group where 87% of patients also took a diuretic — and not accounting for the diuretic in the analysis. You might conclude the predictor works on blood-pressure medication when actually it's reading the diuretic. Same shape of error here.
+
+A clean validation would be: take only the 4 patients who got doxorubicin without platinum and check if the biomarker still separates them. But 4 patients is far too small. The data necessary to disentangle the two effects isn't in this cohort.
+
+The honest read of Fig 2c is: *the biomarker predicts outcome in a cohort where most patients received platinum cotherapy that we didn't adjust for, using a biomarker whose labels were assigned from platinum response. Whether the biomarker tracks anthracycline response specifically — separately from platinum — is not established by this experiment.*
 
 ---
 
-**One-line summary for this audit:** *Of 25 audit findings (all novel, none previously reported), 5 are major: a published HR is hardcoded into the script and never computed from the model; 5 of 9 main headlines lose statistical significance under proper multiple-testing correction; the OV04 platinum pilot HR collapses to non-significance when a 7-element hand-coded patient list is removed from the model; treating RECIST-confirmed cancer progression as "censored" instead of as an event shifts two of four phase-3 hazard ratios by more than 30%; patients with all-missing biomarker values silently receive deterministic prediction labels based on which file they were stored in.*
+**One-line summary for this audit:** *Of 25 audit findings (all novel, none previously reported), the most concerning is structural: the anthracycline biomarker is trained on platinum-response-derived labels and validated in a 87%-platinum-co-treated cohort with cotherapy unadjusted; alongside this — 5 of 9 main headline hazard ratios lose statistical significance under proper multiple-testing correction, the OV04 platinum pilot HR collapses to non-significance when a 7-patient hand-coded covariate is removed, treating RECIST-confirmed cancer progression as "censored" instead of as an event shifts two of four phase-3 HRs by more than 30%, and patients with all-missing biomarker values silently receive deterministic prediction labels based on which file they were stored in.*
 
-Full report (with reproduction R code per finding): https://github.com/shabtai/2025-26-flaw-analyses/blob/main/thompson2025/flaws.html
+Full report (with reproduction R code per finding): https://shabtai.github.io/audit-papers/2025-26-flaw-analyses/thompson2025/flaws.html
+
+Audit conducted with natural-joints (https://www.natural-joints.com/) — semantic data-layer enrichment plus multi-agent code/honesty/facts review. The plat_cotherapy finding above was specifically surfaced by enrichment: the column's True/False values say nothing on their own; the resolved meaning *"received platinum-based therapy as a concurrent treatment alongside doxorubicin"* is what made the audit agent look for it in the Cox model.
 
 #Bioinformatics #Reproducibility #ClinicalResearch #StatisticalRigor #ScientificIntegrity
 
 ---
 
-Repo index: https://github.com/shabtai/2025-26-flaw-analyses
-Top-4 deep dive (with the methodology used to filter "real bugs" from reproducibility issues that could be excused by demo data): https://github.com/shabtai/2025-26-flaw-analyses/blob/main/top-bugs.html
+Repo index: https://shabtai.github.io/audit-papers/2025-26-flaw-analyses/
+Top-4 deep dive (with the methodology used to filter "real bugs" from reproducibility issues that could be excused by demo data): https://shabtai.github.io/audit-papers/2025-26-flaw-analyses/top-bugs.html
