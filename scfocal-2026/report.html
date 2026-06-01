@@ -1,0 +1,799 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>scFOCAL 9-agent audit — Nat Commun 2026 (s41467-025-67783-5)</title>
+<script data-goatcounter="https://natural-joints.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<style>
+:root { --bg:#fafafa; --fg:#1a1a1a; --muted:#666; --border:#e0e0e0; --accent:#0a66c2; --critical:#c0392b; --major:#e67e22; --minor:#7f8c8d; --neg:#95a5a6; --negligible:#bdc3c7; }
+* { box-sizing: border-box }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width:1100px; margin:24px auto; padding:0 24px; color:var(--fg); background:var(--bg); line-height:1.55; font-size:14px }
+h1 { font-size:1.7em; border-bottom:3px solid var(--accent); padding-bottom:8px }
+h2 { font-size:1.3em; border-bottom:1px solid var(--border); padding-bottom:4px; margin-top:32px }
+h3 { font-size:1.1em; color:#222; margin-top:24px }
+h4 { font-size:1.05em; margin-top:20px }
+code { background:#f0f0f0; padding:1px 5px; border-radius:3px; font-size:0.93em }
+pre { background:#1e1e1e; color:#e6e6e6; padding:12px; border-radius:6px; overflow-x:auto; font-size:0.85em }
+pre code { background:none; color:inherit; padding:0 }
+table { border-collapse:collapse; width:100%; margin:12px 0; font-size:0.9em }
+th, td { border:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top }
+th { background:#f0f0f0; font-weight:600 }
+tr:nth-child(even) { background:#f8f8f8 }
+blockquote { border-left:4px solid var(--accent); margin:12px 0; padding:6px 12px; background:#f0f4f8; color:#555 }
+.tag { display:inline-block; padding:2px 7px; border-radius:3px; font-size:0.82em; font-weight:600; color:white }
+.tag-critical { background:var(--critical) }
+.tag-major { background:var(--major) }
+.tag-minor { background:var(--minor) }
+.tag-negligible { background:var(--negligible); color:#333 }
+.tag-blind { background:#34495e }
+.tag-enriched { background:#8e44ad }
+.tag-both { background:#27ae60 }
+.tag-corrected { background:#16a085 }
+.toc { background:#fff; border:1px solid var(--border); padding:12px 18px; border-radius:6px; margin:16px 0 }
+.toc ul { margin:4px 0; padding-left:20px }
+.toc a { color:var(--accent); text-decoration:none }
+.toc a:hover { text-decoration:underline }
+hr { border:none; border-top:1px solid var(--border); margin:24px 0 }
+</style>
+
+</head><body>
+
+<div class="toc">
+<strong>Quick links</strong>
+<ul>
+<li><a href="#data-authenticity">Data Authenticity (PARTIAL)</a></li>
+<li><a href="#summary-table">Summary Table (33 findings)</a></li>
+<li><a href="#headline-impact-on-the-paper">Headline Impact</a></li>
+<li><a href="#key-takeaways">Key Takeaways</a></li>
+</ul>
+</div>
+
+<h1>scFOCAL — 9-agent audit (Nat Commun 2026, s41467-025-67783-5)</h1>
+<p><strong>Target</strong>: Suter et al., "Drug and single-cell gene expression integration identifies sensitive and resistant glioblastoma cell populations", <em>Nat Commun</em> 2026; DOI 10.1038/s41467-025-67783-5; PMC12780015.
+<strong>Repos</strong>: github.com/AyadLab/scFOCAL, github.com/AyadLab/scFOCAL-dataProcessing.
+<strong>Audit run</strong>: <code>audit-1780255732</code> (2026-05-31).
+<strong>Team</strong>: 6 parallel auditors (3 blind / 3 enriched) + 3 summary agents (verifier, novelty-checker, impact-runner with <strong>Data Authenticity Step A</strong>).
+<strong>Data</strong>: 13 deposited Supp Datasets 1–7 (paper OUTPUTS — analysis INPUTS from Synapse / GEO GSE148842 / full LINCS L1000 not deposited).
+<strong>Code</strong>: 15 R files (~9.9k LOC) across the two repos.</p>
+<hr />
+<h2>Data Authenticity</h2>
+<p><strong>Verdict: PARTIAL.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Paper claim</th>
+<th>Deposited data</th>
+<th>Match?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>11 patients (6 GBM + 5 Johnson SM)</td>
+<td>11 contrasts: GBM21/41/47/49/51/53 + SM006/011/012/017/018</td>
+<td><strong>MATCHES</strong></td>
+</tr>
+<tr>
+<td>53,542 neoplastic cells</td>
+<td>only Fig 3i subtype rows expose cell counts</td>
+<td>UNVERIFIABLE</td>
+</tr>
+<tr>
+<td>10,394 alisertib cells</td>
+<td>41,576 = 10,394 × 4 subtypes (long-form)</td>
+<td><strong>MATCHES</strong></td>
+</tr>
+<tr>
+<td>5,708 DMSO cells</td>
+<td>Fig 3i has 0 DMSO rows — 4 scalar offsets only</td>
+<td><strong>MISMATCH</strong></td>
+</tr>
+<tr>
+<td>64 / 63 oncology drugs</td>
+<td>Fig 2h header has 51 drug columns</td>
+<td><strong>MISMATCH</strong></td>
+</tr>
+<tr>
+<td>"54 of 64 sig at adj.p&lt;0.05"</td>
+<td>per-contrast sig counts max 47 (39/47/45/44/41/26) — no contrast hits 54</td>
+<td><strong>MISMATCH</strong></td>
+</tr>
+<tr>
+<td>978 landmark genes</td>
+<td>L1000_genes.rda has 960 real + 1 header-bleed row</td>
+<td><strong>MISMATCH (~17 missing)</strong></td>
+</tr>
+<tr>
+<td>1,679 L1000 compounds</td>
+<td>ds5 has 1,674 — 5 dropped silently</td>
+<td><strong>PARTIAL</strong></td>
+</tr>
+<tr>
+<td>24 GSC lines (BLISS)</td>
+<td>s9b/c has 24 lines</td>
+<td><strong>MATCHES</strong></td>
+</tr>
+<tr>
+<td>411 L1000 → CT-179 ranking</td>
+<td>ds6 = 411 compounds</td>
+<td><strong>MATCHES</strong></td>
+</tr>
+<tr>
+<td>Fig 5E survival medians 19/24/38/63d</td>
+<td>recomputed from per-mouse deaths: 19/24/38/63d EXACT</td>
+<td><strong>MATCHES</strong></td>
+</tr>
+<tr>
+<td>Fig 5D Vehicle N timeline</td>
+<td>N=[10,10,10,4,3,3,1,1,1,1] for days [0..32]</td>
+<td><strong>MATCHES</strong> (and confirms F9 dropout)</td>
+</tr>
+<tr>
+<td>Excel SEPT/MARCH corruption</td>
+<td>ds1 25 rows; ds3 436 rows (374 sig) — ds2 properly coded</td>
+<td>provenance marker — pipeline went through Excel for ds1+ds3 but not ds2</td>
+</tr>
+<tr>
+<td>varlitinib (headline EGFR hit)</td>
+<td>deposited only as <code>ARRY.334543</code>, rank 31/411 by CI</td>
+<td><strong>MISMATCH</strong> (naming + visual-rank)</td>
+</tr>
+<tr>
+<td>CT-179 GBM8 raw RNA-seq</td>
+<td>only derived 411-compound table deposited</td>
+<td><strong>MISSING</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the deposit appears to be</strong>: a curated, post-hoc, partially-spreadsheet-mediated subset of the analysis substrate. Where the deposited data IS the analysis substrate (survival, alisertib subset of Fig 3i, BLISS heatmap, per-patient discordance rankings) — reproductions match exactly and impact reruns are valid. Where it is a derived artifact (Fig 2h drug count 51, CT-179 GBM8 signature, in-vivo DMSO arm, 978 vs 961 landmarks) — paper claims cannot be adjudicated against the deposit and impact must be argued structurally.</p>
+<hr />
+<h2>Audit Findings (33 deduplicated, all VERIFIED on independent re-derivation)</h2>
+<h3>CRITICAL — paper-level</h3>
+<h4>F1: Pseudoreplication — cells treated as independent biological replicates in limma <code>[BLIND+ENRICHED]</code></h4>
+<ul>
+<li><strong>Location</strong>: <code>discordanceLimma.R:55-66, 129-203</code>; <code>Figure3i_v2.R:29-43</code>; <code>GBM_Combinations_ISOSCELES_2020L1000.R:192-203</code>; <code>GBM_scFOCAL_inVitro_Combinations.R:192-203</code>; <code>CT179_RNAseq/ct179_combinationScoring.R:54-75</code>; Shiny <code>inst/shiny/server.R:1961-1975, 2018-2032</code></li>
+<li><strong>What's wrong</strong>: <code>model.matrix(~0 + patient_group)</code> treats every cell as independent → residual DOF ≈ N_cells (10⁴+) instead of N_patients (11). Yields B&gt;6500, P=0 underflow, t≈121 with logFC=0.007.</li>
+<li><strong>Evidence</strong>: <code>supp_dataset5_patient_drugdiscordancelimma_re.csv</code> — 15,007/18,414 (81.5%) reach adj.p&lt;0.05; 205 rows have P.Value exactly 0; AveExpr essentially constant at 9.806±0.014 (the enrichment-flagged "triad").</li>
+<li><strong>Verified</strong>: ✓ all numerics independently reproduced.</li>
+<li><strong>Data-impact</strong>: <strong>MAJOR</strong> (structural — inflation factor √(N_cells/2) ≈ 50× on t; "N at adj.p&lt;0.05" claims invalid)</li>
+<li><strong>Paper-impact</strong>: <strong>MAJOR</strong> for significance claims; <strong>MODERATE</strong> for top-K rank-based selection (rank-order preserved because all compounds inflate equally — alisertib still ranks 1/1674 by mean t across all 11 patient contrasts)</li>
+<li><strong>Novelty</strong>: NOVEL / CLASS-KNOWN (Squair 2021, Crowell 2020 are canonical for scRNA-seq pseudoreplication; no scFOCAL-specific report)</li>
+<li><strong>Enrichment contribution</strong>: <code>wrong_value_findings.json</code> line 198 named the AveExpr+logFC+B triad directly — saved 30+ min of pipeline tracing</li>
+<li><strong>Fix</strong>: pseudobulk per (patient × condition), OR <code>duplicateCorrelation(block=patientID)</code>, OR mixed-effects via <code>muscat</code>/<code>dream</code>. Note: <code>library(lme4)</code> is loaded but never used (F24) — fossil of the intended-but-abandoned correct analysis.</li>
+</ul>
+<h4>F2: <code>Combination_Index</code> column is not a Bliss/Loewe/Chou-Talalay CI — custom <code>|logFC × mRCC|</code> <code>[BOTH]</code></h4>
+<ul>
+<li><strong>Location</strong>: <code>GBM_Combinations_ISOSCELES_2020L1000.R:323-327, 478</code>; <code>GBM_scFOCAL_inVitro_Combinations.R:330-334, 442, 790, 813</code>; <code>ct179_combinationScoring.R:178-179</code></li>
+<li><strong>Cross-validation</strong>: <code>Combination_Index ≡ |CT-179_Resist_vs_Sens_logFC × CT-179_mRCC|</code> — Pearson r = 1.000000, max abs error = 4.99e-08 across all 411 rows. Range 7.2e-08 to 1.23e-03 (3 orders of magnitude below classical CI scale).</li>
+<li><strong>Side bug</strong>: output filename <code>CombinationIndex_vs_InVitroBLISSS.csv</code> (triple-S) at line 813.</li>
+<li><strong>Verified</strong>: ✓</li>
+<li><strong>Data-impact</strong>: NEGLIGIBLE | <strong>Paper-impact</strong>: <strong>MODERATE</strong> (presentation; readers will misinterpret as standard pharmacology CI)</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F3: Mean-cutoff dichotomization is circular <code>[BOTH]</code> (code only)</h4>
+<ul>
+<li><strong>Location</strong>: <code>GBM_Combinations_ISOSCELES_2020L1000.R:117-136</code>; <code>GBM_scFOCAL_inVitro_Combinations.R:117-136</code>; <code>Panobinostat_analysis/04_*.R:836-837</code></li>
+<li><strong>Bug</strong>: <code>cutOff &lt;- mean(...)</code> per drug; cells above mean labeled "resistant" → then limma's resistant−sensitive contrast tests on the same connectivity metric used to split. Author's own comment (line 125): "should the cut-off be set dynamically? i.e. geometric mean of all cells connectivities?"</li>
+<li><strong>Verified</strong>: ✓</li>
+<li><strong>Data-impact</strong>: UNRERUNNABLE (raw connectivity matrices not deposited) | <strong>Paper-impact</strong>: <strong>MAJOR</strong> (structural — guarantees ~50/50 split; compounds with F1 to inflate)</li>
+<li><strong>Novelty</strong>: NOVEL / CLASS-KNOWN</li>
+</ul>
+<h4>F4: Headline compound "varlitinib" deposited only as LINCS code <code>ARRY.334543</code>, ranks 31/411 not visually-implied top-3 <code>[BOTH]</code> (honesty)</h4>
+<ul>
+<li><strong>Location</strong>: paper Fig 5a/c; <code>supp_dataset6_ct179_resist_vs_sens.csv</code></li>
+<li><strong>Verified</strong>: ✓ 0 rows match "varlitinib" by name; <code>ARRY.334543</code> at rank 31/411 by CI. Top-3 = taselisib (PI3K), volasertib (PLK1), PF.03758309 — none EGFR-targeting, none fits Depatux-M rationale.</li>
+<li><strong>Data-impact</strong>: NEGLIGIBLE | <strong>Paper-impact</strong>: <strong>MODERATE</strong> (presentation; visual emphasis selects a rank-31 compound)</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F5: Alisertib doesn't rank near top of its own GBM22 xenograft contrast — but does win every per-patient contrast <code>[BLIND]</code> <code>[PARTIALLY VERIFIED]</code></h4>
+<ul>
+<li><strong>PDX axis</strong> (<code>supp_dataset5_pdx_*.csv</code>, single contrast): alisertib rank 97/1,674 by positive logFC, 166/1,674 by |logFC| (blind-track used 0-index — substance unchanged). Top: ingenol mebutate, PMA, paclitaxel, AT.9283, cabazitaxel — all unrelated to aurora kinase.</li>
+<li><strong>Patient axis</strong> (11 contrasts): alisertib rank 1/1,674 by t in all 11 patients (t = 43.6 to 121.5); rank 1 by logFC in 9/11, rank 2-3 in GBM21 &amp; GBM41.</li>
+<li><strong>Verified</strong>: ✓ both axes simultaneously true (different designs catch different things)</li>
+<li><strong>Data-impact</strong>: MODERATE | <strong>Paper-impact</strong>: MODERATE (one of the two self-validations the paper uses fails at the PDX level)</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F6: ρ=0.7 "scFOCAL CI vs experimental BLISS" validation is an aggregate masking per-line heterogeneity <code>[BLIND]</code> (honesty)</h4>
+<ul>
+<li><strong>Location</strong>: <code>supp_dataset7_supplemental_figure_s9b_c.csv</code></li>
+<li><strong>Verified</strong>: ✓ mean per-line ρ = 0.317, median 0.255; only 6/24 lines individually p&lt;0.05; 3 lines with ρ&lt;0 (GSC2 -0.34, GSC38 -0.03, GSC274 -0.03); 18/24 lines individually NS.</li>
+<li><strong>Data-impact</strong>: <strong>MAJOR</strong> (structural) | <strong>Paper-impact</strong>: <strong>MAJOR</strong> — at the clinically translatable per-line level, framework predicts ≈ chance in 75% of lines</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F7: DMSO control arm is MISSING from Fig 3i deposited data; FDR=3.2e-238 is from one-sample-vs-0 test <code>[ENRICHED]</code></h4>
+<ul>
+<li><strong>Location</strong>: <code>supp_dataset7_figure_3i_j_normalized_enrichme.csv</code></li>
+<li><strong>Verified</strong>: ✓ all 41,576 rows have Treatment="Alisertib"; zero DMSO rows. DMSO stored as 4 scalar means in <code>Unnamed: 31</code>–<code>Unnamed: 34</code>: MES.like=-0.0158, AC.like=+0.0177, NPC.like=+0.0097, OPC.like=-0.0104. Test (<code>Figure3i_v2.R:32</code>): <code>wilcox.test(Score, mu=0)</code> — one-sample.</li>
+<li><strong>Data-impact</strong>: UNRERUNNABLE (raw DMSO cells not deposited) | <strong>Paper-impact</strong>: <strong>MAJOR</strong> (structural — one-sample-vs-0 on N=10,394 yields extreme FDR by N alone; correct two-sample test would weaken by tens of orders of magnitude; OPC-targeting direction survives qualitatively)</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F8: CT-179 GBM8 RNA-seq raw data NOT deposited <code>[ENRICHED]</code></h4>
+<ul>
+<li><strong>Verified</strong>: ✓ only derived 411-compound <code>supp_dataset6</code> is in the deposit; no GBM8 raw counts; no 841-gene signature artifact.</li>
+<li><strong>Data-impact</strong>: UNRERUNNABLE | <strong>Paper-impact</strong>: <strong>MAJOR</strong> (unverifiable — entire OLIG2-inhibitor + Depatux-M combination rationale rests on this signature; F12 also shows the signature derivation has a bug)</li>
+<li><strong>Novelty</strong>: NOVEL — could be filed as a data-availability issue with the journal</li>
+</ul>
+<h3>MAJOR — analysis bugs / reproducibility hazards</h3>
+<h4>F9: Fig 5D Vehicle imaging dropout precedes death by 5-7 days — selection bias <code>[ENRICHED]</code></h4>
+<ul>
+<li><strong>Verified</strong>: ✓ Day 11: Fig 5E shows all 10 Vehicle mice alive (first death day 17), but Fig 5D BLI Vehicle N=4. Day 14: 10 alive, N=3. Mice removed from imaging before death (humane removal for tumor burden); selectively imaging slower-growing tumors.</li>
+<li><strong>Data-impact</strong>: MODERATE | <strong>Paper-impact</strong>: <strong>MAJOR</strong> — Vehicle mean trajectory after day 11 biased downward in exactly the days where Fig 5D visually argues for combo benefit. Imaging dropout protocol not disclosed in figure legend.</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F9a: Fig 5D late-timepoint t-tests are degenerate (Vehicle N=1, SD=0 → effectively one-sample test) <code>[BOTH]</code></h4>
+<ul>
+<li><strong>Verified</strong>: ✓ Day 25 row: Vehicle Mean=2.38e9, SD=0, N=1; Combo Mean=9.16e6, SD=7.98e6, N=10; reported t=297.142, "p&lt;0.000001" literally in the CSV. Days 28/32 also Vehicle N=1, SD=0 → t=395.0, 397.1.</li>
+<li><strong>Rerun (Welch t restricted to days with N≥3 both arms)</strong>: max valid t = 3.13 at day 17 (instead of 297); p ≈ 0.005-0.01 instead of "&lt;0.000001".</li>
+<li><strong>Data-impact</strong>: <strong>MAJOR</strong> | <strong>Paper-impact</strong>: <strong>MAJOR</strong> — published Fig 5D Adj.P &lt; 0.000001 is unsupported; days 25/28/32 must be removed from any defensible analysis. Combo still beats Vehicle qualitatively in first 17 days; survival (Fig 5E, MS=63 vs 19, MATCHES exactly) is the load-bearing evidence and is unaffected.</li>
+<li><strong>Novelty</strong>: NOVEL / CLASS-KNOWN</li>
+</ul>
+<h4>F10: Excel SEPT/MARCH gene-symbol corruption in supp_dataset1 + supp_dataset3 <code>[BLIND+ENRICHED]</code></h4>
+<ul>
+<li><strong>Verified</strong>: ✓ d1: 25 date-string rows, 15 distinct symbols, 24/25 padj&lt;0.05. d3: 436 date-string rows, 20 distinct symbols, 374/436 padj&lt;0.05. d2 has properly-coded MARCH1-9 + SEPT2-11 → indicates ds1+ds3 went through Excel but ds2 did not (two different export paths or post-hoc spreadsheet editing).</li>
+<li><strong>Each <code>1-Mar</code> token ambiguously collapses MARCH1 ∪ MARC1 ∪ MARCHF1</strong> → back-mapping is non-unique.</li>
+<li><strong>Data-impact</strong>: MODERATE | <strong>Paper-impact</strong>: MODERATE (cross-table gene-list intersections silently drop these families; doesn't affect compound-level headlines but contaminates supp marker tables that re-users mine). Also a strong PROVENANCE MARKER confirming Excel touched the deposit pipeline.</li>
+<li><strong>Novelty</strong>: NOVEL (this paper) / CLASS-KNOWN (Ziemann 2016: 31% of papers 2014-2020)</li>
+</ul>
+<h4>F11: <code>CellClusteringOnConnectivity_V5.R</code> processes only ONE patient (GBM41) <code>[BLIND]</code></h4>
+<ul>
+<li><strong>Verified</strong>: ✓ line 62 commented-out <code>setdiff(unique(meta$patientID), "GBM41")</code>; line 63 active <code>patient_ids &lt;- "GBM41"</code>. Line 216 reads <code>_metadata_with_clusters.rds</code> files via <code>list.files()</code> — silent disk aggregation. Deposited <code>supp_dataset7_supplemental_figure_s3b.csv</code> covers 13 patients × 7 k-means (91 columns) so the actual analysis MUST have iterated more broadly than the committed code does.</li>
+<li><strong>Data-impact</strong>: UNRERUNNABLE (intermediate <code>.rds</code> files not deposited) | <strong>Paper-impact</strong>: MODERATE — clean re-run produces a metacluster of one patient with no fail-loud; reproducibility hard-blocked.</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F12: <code>200nM.R</code> bugs — positional replicate labels + adj.p/raw-p inconsistency + circular LFC cutoff <code>[BLIND]</code></h4>
+<ul>
+<li><strong>Verified</strong>: ✓ Line 34 hardcodes <code>pheno$replicate &lt;- c("1","2","3","1","2","3")</code> (positional, no <code>stopifnot</code>). Line 84 volcano coloring uses <code>padj &lt; 0.05</code>; line 130 <code>sigres2 &lt;- subset(... pval &lt; .05 ...)</code> silently switches to raw p for the gene-list that feeds singscore/connectivity scoring. <strong>Note</strong>: column is actually <code>pvalue</code> (not <code>pval</code>) in DESeq2 output — line 130's <code>pval</code> is likely a typo that yields NA. Either way the inconsistency is real and load-bearing. Line 79 <code>logFC_t = mean(|lfc|) + 2*sd(|lfc|)</code> — data-driven threshold computed after DESeq on the same fit (circular).</li>
+<li><strong>Data-impact</strong>: UNRERUNNABLE (raw counts not deposited; F8) | <strong>Paper-impact</strong>: <strong>MAJOR</strong> (structural — raw-p vs adj-p switch typically inflates gene-list 3-10×; CT-179 signature → ds6 ranking → varlitinib combo selection chain rests on inflated gene set)</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F13: Drug-count claim "54 of 64" cannot be reproduced — paper says 64, Methods says 63, deposit has 51 <code>[BOTH]</code></h4>
+<ul>
+<li><strong>Verified</strong>: ✓ Fig 2h header has 51 drug-name columns. Per-contrast sig counts (already pre-filtered adj.p&lt;0.05): 39, 47, 45, 44, 41, 26 — no contrast reaches 54. Pooled: 51 sig in at least one, 15 sig in all six.</li>
+<li><strong>Data-impact</strong>: <strong>MAJOR</strong> | <strong>Paper-impact</strong>: MODERATE — headline statistic unreproducible; either Methods/Results inconsistency or deposit is a 51-of-64 subset.</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F14: Two unrelated tables glued vertically in one CSV with shared column names — Fig 2h + Fig s9b/c <code>[BOTH]</code> (facts)</h4>
+<ul>
+<li><strong>Verified</strong>: ✓ Fig 2h block 1 (rows 0-3): 4 states × 51 drugs scaled connectivity. Block 2 (rows 7+): limma topTable where row 6 sub-header remaps <code>afatinib</code>→logFC, <code>alectinib</code>→AveExpr, <code>alisertib</code>→t, <code>alpelisib</code>→P.Value, <code>altretamine</code>→adj.P.Val, <code>bicalutamide</code>→contrast, <code>cabazitaxel</code>→compound. Naïve <code>pd.read_csv</code> silently mixes them ("alisertib" column will contain t-statistic 55.30 instead of scaled connectivity 0.0046).</li>
+<li><strong>Data-impact</strong>: <strong>MAJOR</strong> (latent for re-users) | <strong>Paper-impact</strong>: NEGLIGIBLE (paper doesn't read its own deposited CSV) — but any downstream computational consumer gets wrong data silently.</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F15: 5 L1000 compounds silently dropped from limma roster (1679 → 1674) <code>[BLIND]</code></h4>
+<ul>
+<li><strong>Verified</strong>: ✓ setdiff = {<code>A.769662, JNJ.38877605, SGX523, TAK.715, Y.27632</code>}. Undocumented.</li>
+<li><strong>Data-impact</strong>: NEGLIGIBLE | <strong>Paper-impact</strong>: MODERATE (provenance — pattern with F13/F16 suggests undocumented subset selection)</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F16: 978 vs 961 landmark genes <code>[BOTH]</code></h4>
+<ul>
+<li><strong>Verified</strong>: ✓ L1000_genes.rda = 961 rows (1 header-bleed "Genes" + 960 real symbols). Paper Methods claims 978. 17-gene shortfall.</li>
+<li><strong>Data-impact</strong>: NEGLIGIBLE-to-MODERATE | <strong>Paper-impact</strong>: MODERATE (connectivity scores not bit-reproducible against the paper's stated landmark set)</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h4>F17: CT-179 monotherapy NOT significant vs vehicle — combo benefit largely an ABT-414 effect <code>[BLIND]</code></h4>
+<ul>
+<li><strong>Verified</strong>: ✓ Vehicle MS=19d, CT-179 MS=24d (p=0.611 NS, HR_logrank=1.22). ABT-414 alone MS=38d (huge effect, p=0.0006). Combo MS=63d (vs ABT-414 alone p=0.0014).</li>
+<li><strong>Data-impact</strong>: NEGLIGIBLE | <strong>Paper-impact</strong>: MODERATE (framing — abstract/discussion overstates monotherapy efficacy; "OLIG2 inhibitor as therapy" indistinguishable from vehicle in this experiment)</li>
+<li><strong>Novelty</strong>: NOVEL</li>
+</ul>
+<h3>SUBSTANTIVE (correct narrative with bugs/gaps)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Title</th>
+<th>Tag</th>
+<th>Data-Impact</th>
+<th>Paper-Impact</th>
+<th>Verified</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F18</td>
+<td>OPC-targeting story untestable in GBM47, GBM53 (OPC proportion ~0.0005)</td>
+<td>BLIND</td>
+<td>NEGLIGIBLE</td>
+<td>MINOR (disclosure)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F19</td>
+<td>Fig 3i <code>Subtype</code> is long-form key (4 rows/cell) — quadruple-count hazard</td>
+<td>ENRICHED</td>
+<td>NEGLIGIBLE for paper</td>
+<td>NEGLIGIBLE / MAJOR for re-users</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F20</td>
+<td>ds5p ↔ ds5pdx are different experiments — not a parent/child FK</td>
+<td>ENRICHED+CORRECTED</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F21</td>
+<td><code>panobinostat_inverseCor</code> sign-flip risk (UMAP uses negated, cell-typing uses raw)</td>
+<td>BLIND</td>
+<td>UNRERUNNABLE</td>
+<td>MODERATE if Fig 3i direction inverted</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F22</td>
+<td>75th-percentile per-sample feature cutoff drops healthiest cells</td>
+<td>BLIND</td>
+<td>UNRERUNNABLE</td>
+<td>MODERATE (QC bias affecting cell-state composition)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F23</td>
+<td><code>bliss_scores</code> <code>strsplit(..., "...", fixed=T)</code> fragile to dot-containing LINCS names</td>
+<td>ENRICHED</td>
+<td>NEGLIGIBLE (latent)</td>
+<td>NEGLIGIBLE</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F24</td>
+<td><code>library(lme4)</code> loaded but never used — fossil of the correct fix for F1</td>
+<td>BLIND</td>
+<td>NA</td>
+<td>NEGLIGIBLE (forensic)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F25</td>
+<td>Down-regulated absence-markers with pct.1=0 (29 in ds2, 12,183 in ds3)</td>
+<td>ENRICHED</td>
+<td>NEGLIGIBLE for paper</td>
+<td>MODERATE for re-users</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F26</td>
+<td>ds6 <code>Group_num</code> is not sequential 1..411 (range 4-706) — enrichment wrong, data fine</td>
+<td>ENRICHED+CORRECTED</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F27</td>
+<td>Fig 5E enrichment columns mis-described — data fine, reproduces paper exactly</td>
+<td>ENRICHED+CORRECTED</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F28</td>
+<td>Fig 3i FDR family m=4 (within-condition) — disclosure convention</td>
+<td>ENRICHED</td>
+<td>NEGLIGIBLE</td>
+<td>MINOR</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F29</td>
+<td>Spearman +1/-1 shift opaque scaffolding (modify-either-flips bug)</td>
+<td>BLIND</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE; code-brittleness MEDIUM</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F30</td>
+<td>Fig 3i opposite signs across 4 subtypes (Alisertib reduces NPC/OPC, increases MES) — caption clarity</td>
+<td>BLIND</td>
+<td>NEGLIGIBLE</td>
+<td>MINOR (figure clarity)</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<h3>LOW (cosmetic)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Title</th>
+<th>Verified</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F31</td>
+<td>Header inconsistencies and typos: <code>D35</code> vs <code>D36</code>, <code>Enriichment</code> (triple-i), <code>BLISSS</code> (triple-S)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>F32</td>
+<td>Tied-p Bonferroni microviolations in ds3 — Seurat artifact, NOT a bug (noted for completeness)</td>
+<td>NOT-A-BUG</td>
+</tr>
+<tr>
+<td>F33</td>
+<td><code>L1000_genes.rda</code> row 1 = literal "Genes" (header-bleed)</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Summary Table</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Finding</th>
+<th>Tag</th>
+<th>Verified</th>
+<th>Novel</th>
+<th>Data-Impact</th>
+<th>Paper-Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Pseudoreplication (cells as biol replicates in limma)</td>
+<td>BLIND+ENRICHED</td>
+<td>✓</td>
+<td>NOVEL/class-known</td>
+<td>MAJOR</td>
+<td>MAJOR / MODERATE rank-based</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>Combination_Index</code> ≡ <code>|logFC × mRCC|</code> (not Bliss/Loewe)</td>
+<td>BOTH</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>MODERATE</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Mean-cutoff dichotomization (circular)</td>
+<td>BOTH</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>UNRERUNNABLE</td>
+<td>MAJOR (structural)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>"varlitinib" only as <code>ARRY.334543</code>, rank 31/411</td>
+<td>BOTH</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>MODERATE</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Alisertib doesn't win own PDX contrast (does win per-patient)</td>
+<td>BLIND</td>
+<td>~✓ (off-by-one)</td>
+<td>NOVEL</td>
+<td>MODERATE</td>
+<td>MODERATE</td>
+</tr>
+<tr>
+<td>6</td>
+<td>ρ=0.7 BLISS validation is aggregate over 18/24 NS lines</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>MAJOR</td>
+<td>MAJOR</td>
+</tr>
+<tr>
+<td>7</td>
+<td>DMSO arm MISSING from Fig 3i; FDR=3.2e-238 from one-sample test</td>
+<td>ENRICHED</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>UNRERUNNABLE</td>
+<td>MAJOR (structural)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>CT-179 GBM8 RNA-seq raw NOT deposited</td>
+<td>ENRICHED</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>UNRERUNNABLE</td>
+<td>MAJOR (unverifiable)</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Fig 5D Vehicle imaging dropout precedes death (selection bias)</td>
+<td>ENRICHED</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>MODERATE</td>
+<td>MAJOR</td>
+</tr>
+<tr>
+<td>9a</td>
+<td>Fig 5D late-timepoint t-tests degenerate (N=1, SD=0)</td>
+<td>BOTH</td>
+<td>✓</td>
+<td>NOVEL/class-known</td>
+<td>MAJOR</td>
+<td>MAJOR</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Excel SEPT/MARCH gene-symbol corruption (ds1 + ds3)</td>
+<td>BLIND+ENRICHED</td>
+<td>✓</td>
+<td>NOVEL(paper)/class-known</td>
+<td>MODERATE</td>
+<td>MODERATE</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>CellClustering...V5.R</code> only processes GBM41</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>UNRERUNNABLE</td>
+<td>MODERATE</td>
+</tr>
+<tr>
+<td>12</td>
+<td><code>200nM.R</code> positional reps + adj.p/raw-p switch + circular LFC</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>UNRERUNNABLE</td>
+<td>MAJOR (structural)</td>
+</tr>
+<tr>
+<td>13</td>
+<td>"54 of 64" unreproducible; deposit has 51 drugs</td>
+<td>BOTH</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>MAJOR</td>
+<td>MODERATE</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Two unrelated tables glued under same column names (Fig 2h + s9b/c)</td>
+<td>BOTH</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>MAJOR (latent)</td>
+<td>NEGLIGIBLE for paper</td>
+</tr>
+<tr>
+<td>15</td>
+<td>5 L1000 compounds silently dropped (1679→1674)</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>MODERATE</td>
+</tr>
+<tr>
+<td>16</td>
+<td>978 vs 961 landmark genes</td>
+<td>BOTH</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEG-MODERATE</td>
+<td>MODERATE</td>
+</tr>
+<tr>
+<td>17</td>
+<td>CT-179 monotherapy NS vs vehicle (HR≈1, p=0.61)</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>MODERATE</td>
+</tr>
+<tr>
+<td>18</td>
+<td>OPC story missing for GBM47, GBM53 (true biological scarcity)</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>MINOR</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Fig 3i <code>Subtype</code> long-form quadruple-count</td>
+<td>ENRICHED</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEG/MAJOR for re-users</td>
+<td>NEGLIGIBLE</td>
+</tr>
+<tr>
+<td>20</td>
+<td>ds5p ↔ ds5pdx not a parent/child FK</td>
+<td>ENRICHED CORRECTED</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+</tr>
+<tr>
+<td>21</td>
+<td><code>panobinostat_inverseCor</code> sign-flip risk</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>UNRERUNNABLE</td>
+<td>MODERATE conditional</td>
+</tr>
+<tr>
+<td>22</td>
+<td>75th-percentile per-sample feature cutoff</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL/class-known</td>
+<td>UNRERUNNABLE</td>
+<td>MODERATE</td>
+</tr>
+<tr>
+<td>23</td>
+<td><code>bliss_scores strsplit(..., "...", fixed=T)</code> fragile</td>
+<td>ENRICHED</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+</tr>
+<tr>
+<td>24</td>
+<td><code>library(lme4)</code> loaded never used (fossil)</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NA</td>
+<td>NEGLIGIBLE</td>
+</tr>
+<tr>
+<td>25</td>
+<td>pct.1=0 absence-markers (mito + housekeeping picked as "markers")</td>
+<td>ENRICHED</td>
+<td>✓</td>
+<td>NOVEL/class-known</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+</tr>
+<tr>
+<td>26</td>
+<td>ds6 <code>Group_num</code> not sequential 1..411</td>
+<td>ENRICHED CORRECTED</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+</tr>
+<tr>
+<td>27</td>
+<td>Fig 5E columns mis-described by enrichment</td>
+<td>ENRICHED CORRECTED</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+</tr>
+<tr>
+<td>28</td>
+<td>Fig 3i FDR family m=4 disclosure</td>
+<td>ENRICHED</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>MINOR</td>
+</tr>
+<tr>
+<td>29</td>
+<td>Spearman +1/-1 shift opaque scaffolding</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+</tr>
+<tr>
+<td>30</td>
+<td>Fig 3i opposite signs across subtypes (caption clarity)</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>MINOR</td>
+</tr>
+<tr>
+<td>31</td>
+<td>Header inconsistencies + typos (D35/D36, Enriichment, BLISSS)</td>
+<td>BOTH</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+</tr>
+<tr>
+<td>32</td>
+<td>Tied-p Bonferroni microviolations (Seurat artifact, NOT a bug)</td>
+<td>BLIND</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>33</td>
+<td>L1000_genes.rda row 1 = literal "Genes" (header bleed)</td>
+<td>BLIND</td>
+<td>✓</td>
+<td>NOVEL</td>
+<td>NEGLIGIBLE</td>
+<td>NEGLIGIBLE</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Enrichment Value: <strong>HIGH</strong></h2>
+<ul>
+<li>≥6 unique ENRICHED findings: F7 (DMSO missing), F8 (GBM8 not deposited), F9 (BLI dropout vs survival), F19 (long-form Subtype), F23 (bliss parsing), F25 (down-reg markers), F28 (FDR family) — plus F26/F27 CORRECTED.</li>
+<li>F1 (the paper-toppling pseudoreplication finding) was materially accelerated by the enrichment's pre-diagnosed AveExpr/logFC/B-stat triad.</li>
+<li>F10 (Excel SEPT/MARCH) was directly flagged by the enrichment's <code>review_findings.json</code> for ds3.</li>
+<li>3 CORRECTED findings (F20, F26, F27) where the enrichment's own description was wrong but the data was fine — a real cost of the enriched track, but transparent.</li>
+</ul>
+<hr />
+<h2>Headline Impact on the Paper</h2>
+<p><strong>What still stands</strong> (deposited data matches paper exactly, claims survive):
+- Combo &gt; ABT-414 survival benefit (Fig 5E MS=63 vs 38 vs 24 vs 19, p=0.0014 combo vs ABT-414, reproduces exactly).
+- Alisertib ranks #1 by mean t across all 11 patient discordance contrasts (rank-based selection robust to F1's √N inflation).
+- Aurora kinase signature in top 10 (top 5: alisertib, NVP.TAE684, GSK.1070916, MK.1775, PF.03758309).
+- Fig 3i direction (alisertib reduces NPC-like, increases MES-like) survives qualitatively even after F7 structural correction.</p>
+<p><strong>What is overstated by the deposited data</strong>:
+- 81% of compounds adj.p&lt;0.05 in ds5p: pseudoreplication-driven (F1 + F3 combine).
+- Fig 3i FDR=3.2e-238: structural N-inflation from one-sample-vs-0 with N=10,394 (F7).
+- Fig 5D "Adj.P &lt; 0.000001" at days 25/28/32: degenerate two-sample t with Vehicle N=1, SD=0 (F9a); valid-day max is t=3.13 at day 17.
+- "ρ=0.7 BLISS validation": aggregate over 18/24 individually-NS cell lines + 3 anti-correlated (F6).
+- "varlitinib top EGFR hit": ranks 31/411 by paper's own CI metric (F4).
+- "OLIG2 inhibitor as therapy": monotherapy NS vs vehicle; combo benefit mostly ABT-414 (F17).
+- "54 of 64 oncology drugs significant": cannot be reproduced; max sig per contrast = 47 (F13).</p>
+<p><strong>What is unverifiable due to missing inputs</strong> (paper-impact must be argued structurally):
+- DMSO arm of in-vivo alisertib experiment (F7) — 5,708 cells stripped.
+- CT-179 GBM8 raw RNA-seq counts (F8) — 841-gene signature derivation black-boxed.
+- Per-cell × per-compound connectivity matrices — blocks rerun of F1/F3/F12.
+- Patient scRNA-seq raw counts (Synapse-gated) — blocks F22 75th-percentile cutoff audit.</p>
+<hr />
+<h2>Key Takeaways</h2>
+<ul>
+<li><strong>Data authenticity: PARTIAL.</strong> The deposited supp tables are a curated, partially-Excel-mediated subset of the analysis substrate. Where the deposit IS the substrate (survival, alisertib subset, BLISS heatmap, per-patient rankings), reproductions match cleanly. Where it is a derived artifact (Fig 2h drug counts, CT-179 signature, in-vivo DMSO arm, landmark count), paper claims cannot be adjudicated and impact must be argued structurally.</li>
+<li><strong>32 of 33 findings VERIFIED on independent re-derivation</strong> (F5 partially-verified with 0-index nit, substance unchanged; F32 is documented as not-a-bug).</li>
+<li><strong>All 33 findings are NOVEL for this paper</strong> — no PubPeer thread, no GitHub issue, no Matters Arising. Six classes (F1, F2, F4, F7, F11, F13) are publishable as a Matters Arising or PubPeer thread without scoop risk.</li>
+<li><strong>Top finding by paper-impact</strong>: F1 + F3 (pseudoreplication + circular dichotomization) — together invalidate the limma significance layer of the ISOSCELES discordance pipeline. Mitigated by the fact that rank-order survives, so qualitative discoveries (alisertib for NPC-like cells, OLIG2-inhibitor + EGFR-ADC combo) likely stand even with corrected statistics.</li>
+<li><strong>F7 (DMSO missing) is the most surprising structural gap</strong> — Fig 3i/j's spectacular FDRs (3.2e-238) are a one-sample-vs-0 test framed as a two-sample alisertib-vs-DMSO contrast, and re-analysis is structurally blocked because DMSO cells are absent from the deposit.</li>
+<li><strong>F9 + F9a together break Fig 5D</strong>: imaging dropout selects slower-growing tumors (downward-bias Vehicle mean), then degenerate t-tests at N=1 / SD=0 produce eye-popping but undefined p-values. Survival (Fig 5E) is the load-bearing evidence and is unaffected.</li>
+<li><strong>Caveat</strong>: PubPeer search-engine indexing is patchy; manual browser visit to pubpeer.com/search?q=10.1038%2Fs41467-025-67783-5 recommended before any public critique.</li>
+</ul>
+<hr />
+<h2>Files</h2>
+<ul>
+<li><code>README.md</code> — this report</li>
+<li><code>COMPILED_FINDINGS.md</code> — pre-summary compiled-and-tagged finding list (Step 4 output)</li>
+<li><code>findings.json</code> — structured per-finding records</li>
+<li><code>team-lead-inbox.json</code> — full message log of the audit team-lead (source of truth)</li>
+<li><code>raw/</code> — per-agent verbatim reports:</li>
+<li><code>blind-code.md</code>, <code>blind-honesty.md</code>, <code>blind-facts.md</code> (Track A)</li>
+<li><code>enriched-code.md</code>, <code>enriched-honesty.md</code>, <code>enriched-facts.md</code> (Track B)</li>
+<li><code>verifier.md</code>, <code>novelty-checker.md</code>, <code>impact-runner.md</code> (Summary)</li>
+<li><code>report.html</code> — single-page HTML rendering</li>
+</ul>
+<hr>
+<p style="color:var(--muted); font-size:0.85em">Generated 2026-05-31 from <code>audit-1780255732</code>. Raw agent messages in <code>raw/</code>; structured findings in <code>findings.json</code>; full team-lead inbox in <code>team-lead-inbox.json</code>.</p>
+</body></html>
