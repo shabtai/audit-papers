@@ -29,6 +29,8 @@
   .footnote { font-size: 0.85em; color: #555; margin-top: 2em; border-top: 1px dashed #ccc; padding-top: 0.6em; }
   .arrow { color: #b30000; font-weight: 700; }
   .spotlight { background: #ffe5e5; border: 1px solid #b30000; border-radius: 4px; padding: 0.8em 1.2em; margin: 1em 0; }
+  .disclaimer { background: #f4f4f4; border-left: 4px solid #888; padding: 0.7em 1em; margin: 1em 0; font-size: 0.92em; color: #333; }
+  .disclaimer p { margin: 0.5em 0; }
 </style>
 </head>
 <body>
@@ -43,6 +45,18 @@
 <strong>Data:</strong> <a href="https://doi.org/10.6084/m9.figshare.29944619.v1">figshare 29944619</a> (~12 MB) + GEO <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE271689">GSE271689</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE221733">GSE221733</a>.<br>
 <strong>Audit date:</strong> 2026-06-01.
 </p>
+
+<div class="disclaimer">
+<p><strong>Scope.</strong> This report describes technical observations about the public materials associated with the paper — the manuscript text, the released code repository, and the deposited data files. It does not evaluate restricted clinical data the authors may hold privately, the underlying patient records, or any laboratory practice. Where the released code, the deposited data, and the manuscript text are inconsistent with each other, the inconsistency is described.</p>
+
+<p><strong>What this report is not.</strong> No allegation of scientific misconduct, fraud, fabrication, intentional misrepresentation, or professional negligence is made or implied. Coding errors, missing files, and data-formatting inconsistencies are common in research code; the patterns described here (e.g., the <code>Surv(as.numeric(time, event))</code> typo) have appeared in many widely-used codebases without any implication of bad intent. The report is an opinion-based technical commentary on public artifacts, in the tradition of post-publication peer review.</p>
+
+<p><strong>Possible reconciliations.</strong> Some findings might be resolvable by private data, scripts, or analyses not included in the public deposit. Where that is plausible, the report flags it. The findings stand only against what is publicly available; the underlying scientific question of whether the signatures predict outcomes in NSCLC immunotherapy is independent of the artifact-level discrepancies described here and may be resolved by future work.</p>
+
+<p><strong>Reproducibility.</strong> Every observation in this report is reproducible from the public figshare deposit + the public GitHub repository + the manuscript text. No access to restricted clinical data was used at any point.</p>
+
+<p><strong>Right of reply.</strong> The authors and their institutions are invited to respond. Corrections, clarifications, additional context, or pointers to private materials that resolve any of the observations will be incorporated and credited. Contact via <a href="https://www.natural-joints.com/">www.natural-joints.com</a>.</p>
+</div>
 
 <div class="keytakeaway">
 <strong>Headline finding.</strong> A <em>Nature Genetics</em> paper claims to predict 2-year PFS in lung-cancer immunotherapy. The training-cohort data says "2 years" is actually 1.45 years.
@@ -84,7 +98,7 @@
 
 <p>A real month is 30.44 days (365.25 ÷ 12). The column labeled "months" doesn't hold months — it holds <code>days/22.11</code>. The "2-year cap" at 24 fires at 24 × 22.11 = 530.6 real days = <strong>17.4 real months ≈ 1.45 years</strong>.</p>
 
-<p>The paired Stroma file uses the correct 30.44 divisor. Same patients, identical <code>PFS_Days</code> across both files; only the Yale Tumor file is corrupted. The Methods section says twice: <em>"PFS data (time in months and an event indicator)."</em> In the Yale Tumor file, that's false.</p>
+<p>The paired Stroma file uses the standard 30.44 divisor. Same patients, identical <code>PFS_Days</code> across both files; only the Yale Tumor file's <code>_months</code> column appears to use a non-standard divisor. The Methods section says twice: <em>"PFS data (time in months and an event indicator)."</em> In the Yale Tumor file, the <code>_months</code> column does not match that description.</p>
 
 <h3>The finding's impact</h3>
 
@@ -126,7 +140,7 @@ What looked like <em>"the signature identifies durable responders who outperform
 </tbody>
 </table>
 
-<p><strong>The paper's central narrative — that two complementary spatial signatures predict immunotherapy outcome across three independent cohorts — is not supported by the artifact the paper released.</strong></p>
+<p><strong>The paper's central narrative — that two complementary spatial signatures predict immunotherapy outcome across three independent cohorts — is not reproducible end-to-end from the released artifact alone.</strong> Private data or additional analyses not in the public deposit may reconcile some of the observations; this report describes only what is reproducible from the public materials.</p>
 
 <h2 id="code-bugs">Bugs in the committed code</h2>
 
@@ -235,7 +249,7 @@ good_models = which((hzrs$x) &gt;= 1.5)         # resistance direction
 # mirror in stroma response script:
 good_models = which((hzrs$x) &lt;= 0.7)         # response direction</code></pre>
 
-<p><code>hzrs$x</code> is the held-out test-cohort HR from 50 random 80/20 splits. The final signature is built by running gene voting only over splits whose test HR was already in the desired direction. <strong>The validation result is the model-selection criterion</strong> — textbook circular validation. Genes appearing across these "good" splits are then assembled and re-evaluated on the same Yale cohort.</p>
+<p><code>hzrs$x</code> is the held-out test-cohort HR from 50 random 80/20 splits. The final signature is built by running gene voting only over splits whose test HR was already in the desired direction. <strong>The validation result is the model-selection criterion</strong> — a circular validation pattern. Genes appearing across these "good" splits are then assembled and re-evaluated on the same Yale cohort.</p>
 
 <h3>UQ validation p-values halved 1-sided post-hoc <span class="sev sev-MAJOR">MAJOR</span></h3>
 
@@ -257,7 +271,7 @@ good_models = which((hzrs$x) &lt;= 0.7)         # response direction</code></pre
 
 <h3>Cohort-comparability gap: Yale = 1st-line pre-Tx Pembro; UQ = post-1st-line Nivo <span class="sev sev-MAJOR">MAJOR</span></h3>
 
-<p>Yale training: all <code>Biopsy_at_ITX = "Pre"</code>, all <code>line_at_ITX = "1"</code>, 28/32 on Pembrolizumab. UQ validation: <code>Biopsy_at_ITX = #N/A</code> for 35/35, 27/35 on Nivolumab, 23/35 ≥ 2nd line. Pre-treatment vs post-treatment biopsies are biologically different — clonal selection under IO. The commented-out filters in the LASSO scripts (<code>Histology %in% c("Squamous")</code>, <code>ImmunoTx %in% c("Nivo")</code>) reveal the authors are aware these are confounders.</p>
+<p>Yale training: all <code>Biopsy_at_ITX = "Pre"</code>, all <code>line_at_ITX = "1"</code>, 28/32 on Pembrolizumab. UQ validation: <code>Biopsy_at_ITX = #N/A</code> for 35/35, 27/35 on Nivolumab, 23/35 ≥ 2nd line. Pre-treatment vs post-treatment biopsies are biologically different — clonal selection under IO. Commented-out filters in the LASSO scripts (<code>Histology %in% c("Squamous")</code>, <code>ImmunoTx %in% c("Nivo")</code>) indicate that these variables were considered during script development as candidate filters.</p>
 
 <h3>No clinical covariate adjustment <span class="sev sev-MODERATE">MODERATE</span></h3>
 
@@ -265,7 +279,7 @@ good_models = which((hzrs$x) &lt;= 0.7)         # response direction</code></pre
 
 <h3>LASSO fit on PFS_5Years, headline HR reported on PFS_2Years <span class="sev sev-MODERATE">MODERATE</span></h3>
 
-<p>Same author, same script. The cell-to-gene pipeline also fits gene selection on PFS_5Years (<code>lasso_CK_RNA_neg_..._finalSig.R:274</code>) but reports a training HR on OS_5Years — three different endpoints in one script. Pick-best-endpoint flexibility.</p>
+<p>Same script. The cell-to-gene pipeline also fits gene selection on PFS_5Years (<code>lasso_CK_RNA_neg_..._finalSig.R:274</code>) but reports a training HR on OS_5Years — three different endpoints appear in one script. The released materials do not specify which endpoint was pre-registered as the primary.</p>
 
 <h3>Data-dependent tertile cutpoint computed on test cohort <span class="sev sev-MINOR">MINOR</span></h3>
 
@@ -273,7 +287,7 @@ good_models = which((hzrs$x) &lt;= 0.7)         # response direction</code></pre
 
 <h3>Inconsistent LASSO stability thresholds <span class="sev sev-MINOR">MINOR</span></h3>
 
-<p>Tumor LASSO: 100 random seeds, 50% stability threshold for retaining a feature. Stroma LASSO: 50 seeds, 30% threshold. Different stringency for the two compartments; appears tuned to land on a reportable signature in each.</p>
+<p>Tumor LASSO: 100 random seeds, 50% stability threshold for retaining a feature. Stroma LASSO: 50 seeds, 30% threshold. Different stringency for the two compartments; the manuscript does not give a rationale for the different choices.</p>
 
 <h2 id="repro">Reproducibility gaps</h2>
 
@@ -311,7 +325,15 @@ good_models = which((hzrs$x) &lt;= 0.7)         # response direction</code></pre
 </table>
 
 <p class="footnote">
-Every finding shown was independently verified by re-running the published code against the deposited data, by comparing paper text against script source, or by structural proof from code + data values. No access to restricted clinical data was used; everything is reproducible from the public figshare deposit + GitHub repo + paper text. All 36 findings beyond the originally-published <code>Surv</code> typo are novel as of 2026-06-02 (zero GitHub issues, zero PRs, no PubPeer entries, no <em>Nature Genetics</em> errata, no Retraction Watch entries on this paper).
+<strong>Verification.</strong> Every observation in this report was independently checked by re-running the published code against the deposited data, by comparing the manuscript text against the script source, or by structural proof from the values in the code and data. No access to restricted clinical data was used. Everything described here is reproducible from the public figshare deposit + the public GitHub repository + the manuscript text. All 36 observations beyond the originally-published <code>Surv</code> typo are, to the best of the auditor's knowledge as of 2026-06-02, not previously reported in public venues (no GitHub issues, no pull requests, no PubPeer entries, no <em>Nature Genetics</em> errata, no Retraction Watch entries on this paper at audit time).
+
+<br><br>
+
+<strong>No misconduct alleged.</strong> This report is opinion-based technical commentary on public artifacts. It does not allege scientific misconduct, fraud, fabrication, intentional misrepresentation, or professional negligence by the authors, their institutions, or any associated person. Coding bugs, missing files, formatting inconsistencies, and unstated analysis choices are common in research code and are described here as such, without imputing motive or character.
+
+<br><br>
+
+<strong>Right of reply.</strong> The authors and their institutions are invited to respond at any time. Corrections, clarifications, additional context, or pointers to private materials that resolve any observation will be incorporated and credited. Contact via <a href="https://www.natural-joints.com/">www.natural-joints.com</a>.
 </p>
 
 </body>
