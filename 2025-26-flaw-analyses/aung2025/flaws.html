@@ -49,7 +49,16 @@
 
 <br><br>
 
-Of 8 hazard ratios named in the paper's abstract, at least 5 either collapse to non-significance under bug correction, are unreproducible from the released artifact, or are products of post-hoc statistical choices. The paper's central clinical narrative — that the responder signature identifies subgroups <em>outperforming</em> standard-of-care pembrolizumab — collapses to "subgroups that <em>match</em> it" once a single corrupted unit conversion in the deposited Yale Tumor file is corrected.
+<strong>Paper claims affected:</strong>
+<ul style="margin: 0.4em 0;">
+<li><strong>Yale discovery HRs</strong> (tumor 3.8, p=0.004; stroma 0.4, p=0.019) → <strong>collapse to non-significance</strong> under correction of a one-character R typo that drops the censoring vector (HR 2.2, p=0.11 and HR 0.30, p=0.057)</li>
+<li><strong>UQ validation HRs</strong> (tumor p=0.05, stroma p=0.036, both 1-sided) → <strong>both p-values exceed 0.05</strong> when correctly two-sided (0.10 and 0.072); both 95% CIs cross 1</li>
+<li><strong>Yale cell-to-gene HR=5.1, p=0.002</strong> → <strong>not reproducible end-to-end</strong>; depends on coefficient files missing from the deposit and on circular gene selection (signature picked by held-out test HR)</li>
+<li><strong>UQ cell-to-gene HR=0.38</strong> → the released validation script <strong>emits HR=1.1, p=0.6</strong> instead</li>
+<li><strong>Greek-cohort HRs (resistance 1.7, response 0.56)</strong> → <strong>unverifiable</strong>; zero code, zero data in the repo</li>
+<li><strong>"Predicts PFS at 2 years"</strong> (the IO field's durable-benefit milestone) → the Yale Tumor "2 years" is 1.45 real years, so the signature is predicting 17-month PFS, an endpoint that doesn't appear in the clinical literature</li>
+<li><strong>"Signatures identify subgroups outperforming SoC pembrolizumab"</strong> → 37%-stretched time axis on every Yale Tumor figure; apparent outperformance of the ~10-month KEYNOTE-024 benchmark collapses to <strong>matching it</strong></li>
+</ul>
 </div>
 
 <div class="toc">
