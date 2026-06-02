@@ -66,7 +66,7 @@ Aung et al., <em>Nature Genetics</em> 2025 — <em>"Spatial signatures for predi
 <p class="meta">DOI <a href="https://doi.org/10.1038/s41588-025-02351-7">10.1038/s41588-025-02351-7</a> · PMID 41073787 · GitHub <a href="https://github.com/tznaung/NSCLC_SpatialOmics">tznaung/NSCLC_SpatialOmics</a></p>
 <p><strong>Verdict.</strong> Of 8 hazard ratios named in the abstract, at least 5 either collapse to non-significance under bug correction, are unreproducible from the released artifact, or are products of post-hoc statistical choices (one-sided p-values, selection on held-out HR, sign-constrained LASSO).</p>
 <ul>
-<li><strong>37 verified findings</strong> (1 published directly + 36 from multi-agent audit), all novel as of audit date.</li>
+<li><strong>37 verified findings</strong> (1 published directly + 36 from the full audit), all novel as of audit date.</li>
 <li><strong>12 MAJOR-impact findings</strong>, including: the released `validate_finalSigs_pStroma_RNA.R` script outputs HR=1.1, p=0.6 while the abstract claims HR=0.38 for the same comparison; the Greek validation cohort (n=79) has zero code in the repository; cell-to-gene signatures are picked from analysis runs filtered by their held-out test HR (textbook circular validation); `lower.limits=0`/`upper.limits=0` in LASSO forces the resistance signature to be non-negative and response to be non-positive — direction set by keyword, not data; `Surv(as.numeric(time, event))` at 11 sites drops the censoring vector; orphan coefficient files mean the published cell-to-gene HR=5.1 cannot be regenerated end-to-end from the artifact.</li>
 <li><strong>14 MODERATE-impact findings</strong>, including: Yale cohort is n=29-31 patients, not n=41 as abstract claims; `"Censored"` ≡ `"Status"` ≡ OS in deposited CSVs; Tumor file uses days/month=22.16, Stroma file uses 30.44 — so KM curves from Tumor file are on a fictional ~37%-compressed timescale; cell-typing `ffill` priority labels Ki67+ FOXP3+ CD4 cells as `Proliferating_Tumour` (the lead cell type in the resistance signature).</li>
 <li>This audit was originally published with just the single Surv() finding from direct code reading; the multi-agent pipeline was run later and found the additional 36.</li>
@@ -74,16 +74,10 @@ Aung et al., <em>Nature Genetics</em> 2025 — <em>"Spatial signatures for predi
 <p><a href="aung2025/flaws.html"><strong>Full Aung audit →</strong></a></p>
 </div>
 
-<h2>Methodology</h2>
-<p>Each audit was performed using a multi-agent pipeline tailored to the paper: blind agents (code/honesty/facts) work from a clean copy of the data, enriched agents work with the semantic-enricher's column-meaning resolution, then summary agents (verifier, novelty-checker, impact-runner) confirm or refute the findings. All findings shown were either (a) verified by independent re-running of the published code against the deposited data, (b) verified by reading the paper text against the script source, or (c) verified by structural proof from code + data values.</p>
+<h2>Verification standard</h2>
+<p>Every finding shown was independently verified by one of: (a) re-running the published code against the deposited data, (b) reading the paper text against the script source, or (c) structural proof from code + data values.</p>
 
-<p><strong>Per-paper methodology actually applied (honest record):</strong></p>
-<ul>
-<li><em>Thompson 2025:</em> direct code review (initial 4-HR reproduction check) + semantic-enricher full pipeline (enrich + wrong-values) + 9-agent audit team (3 blind + 3 enriched + verifier + novelty + impact-runner). Enrichment surfaced several findings (e.g. plat_cotherapy missing from Cox formula via the resolved column meaning).</li>
-<li><em>Aung 2025:</em> direct code review found the Surv typo; semantic enricher was attempted but did not complete (hung at trap detection on the gene-expression CSVs); 6-agent audit team (3 blind + verifier + novelty + impact-runner) found the other 36 findings. Enrichment did not contribute to any Aung finding.</li>
-</ul>
-
-<p>Findings that <em>could</em> be excused by "the deposited data is a stale subset" — cohort-size mismatches between deposited supplementary tables, patients flagged inconsistently across files, etc. — are omitted from these reports. Raw per-agent transcripts and the full superset of findings are available in each paper's audit directory.</p>
+<p>Findings that <em>could</em> be excused by "the deposited data is a stale subset" — cohort-size mismatches between deposited supplementary tables, patients flagged inconsistently across files, etc. — are omitted from these reports.</p>
 
 <p class="footnote">Generated 2026-06-01. Auditor: rantene (Claude Code). All audits are reproducible from public GitHub + figshare + GEO artifacts; no access to restricted clinical data was used.</p>
 

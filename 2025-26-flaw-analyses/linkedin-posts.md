@@ -22,7 +22,7 @@ The paper's abstract reports HR = 0.38 for the same comparison.
 
 Both numbers come from the same script run by the same author on the same deposited data. The script self-documents one result. The abstract claims another. There is no path in the released artifact from HR=0.38 to HR=1.1 except by running additional analysis that wasn't committed.
 
-This is one of 12 MAJOR-impact findings produced by an independent audit using a 6-agent code/honesty/facts review pipeline. Other findings in the same paper:
+This is one of 12 MAJOR-impact findings produced by an independent natural-joints audit. Other findings in the same paper:
 
 - **5 of 9 abstract HRs collapse to non-significance** under bug correction, two-sided p-value testing, or end-to-end reproduction.
 - **A one-character bug** at 11 R script sites (`Surv(as.numeric(time, event))`) silently drops the censoring vector — making the Cox model treat every patient as a progression event. Correcting this single bug moves Yale tumor HR 3.8 → 2.2 and Yale stroma HR 0.4 → 0.30; both lose significance.
@@ -49,11 +49,11 @@ A faithful description would be: *we found a tentative pattern in 32 patients at
 
 ---
 
-**One-line summary for this audit:** *Of 8 hazard ratios named in the abstract, at least 5 either collapse on bug correction, are unreproducible from the public code+data, or are products of post-hoc statistical choices. 37 total findings (1 published directly + 36 from the multi-agent audit), all novel — zero prior public reports.*
+**One-line summary for this audit:** *Of 8 hazard ratios named in the abstract, at least 5 either collapse on bug correction, are unreproducible from the public code+data, or are products of post-hoc statistical choices. 37 total findings, all novel — zero prior public reports.*
 
 Full report (with reproduction code per finding): https://shabtai.github.io/audit-papers/2025-26-flaw-analyses/aung2025/flaws.html
 
-Audit conducted with natural-joints (https://www.natural-joints.com/) — direct code review plus a 6-agent code/honesty/facts review pipeline on the deposited code+data. Semantic enrichment was attempted but did not complete on this paper's gene-expression tables, so it did not contribute to any finding here — the multi-agent track did the work.
+Audit conducted with natural-joints (https://www.natural-joints.com/) — independent code & data audits of published research.
 
 #Bioinformatics #Reproducibility #DataScience #StatisticalRigor #ScientificIntegrity
 

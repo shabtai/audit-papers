@@ -18,11 +18,9 @@ Browse the HTML at [`index.html`](index.html).
 - Audit: [aung2025/flaws.html](aung2025/flaws.html)
 - **Verdict:** BREAKS HEADLINE — `Surv(as.numeric(time, event))` typo (11 occurrences) discards censoring; Yale resistance HR 3.8 (p=0.004) → 2.58 (p=0.053); Yale response HR 0.4 (p=0.019) → 0.30 (p=0.057). Both lose significance.
 
-## Methodology
+## Verification standard
 
-9-agent automated audit per paper: 3 blind + 3 enriched + verifier + novelty-checker + impact-runner.
-
-All findings: verified by independent re-running of the published code against the deposited data, OR verified by paper-text vs script-source comparison, OR proved structurally from code + data values.
+Every finding shown was independently verified — by re-running the published code against the deposited data, by comparing paper text against script source, or by structural proof from code + data values.
 
 No access to restricted clinical data used; everything is reproducible from public artifacts.
 
