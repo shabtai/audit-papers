@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit — Anonymized case study (spatial multi-omics immunotherapy signatures, 2025)</title>
+<script data-goatcounter="https://natural-joints.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 1100px; margin: 2em auto; padding: 0 1em; color: #1f1f1f; line-height: 1.45; }
+  h1 { border-bottom: 2px solid #003366; padding-bottom: 0.3em; }
+  .paper-title { font-size: 1.18em; color: #444; font-style: italic; margin: 0.4em 0 1em 0; line-height: 1.35; }
+  h2 { color: #003366; margin-top: 1.8em; border-bottom: 1px solid #ccc; padding-bottom: 0.2em; }
+  h3 { color: #444; margin-top: 1.4em; }
+  table { border-collapse: collapse; margin: 0.9em 0; width: 100%; font-size: 0.92em; }
+  th, td { border: 1px solid #aaa; padding: 5px 9px; text-align: left; vertical-align: top; }
+  th { background: #eef; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; background: #f4f4f4; padding: 1px 4px; border-radius: 3px; font-size: 0.9em; }
+  pre { padding: 0.7em 0.9em; overflow-x: auto; white-space: pre-wrap; }
+  .sev { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 0.78em; font-weight: 700; color: white; vertical-align: middle; }
+  .sev-MAJOR { background: #b30000; }
+  .sev-MODERATE { background: #d97706; }
+  .sev-MINOR { background: #4a7a4a; }
+  .keytakeaway { background: #fff3a6; border: 1px solid #cc9; padding: 0.7em 1em; border-radius: 4px; margin: 1em 0; }
+  .toc { background: #f0f4f8; border: 1px solid #c0d0e0; padding: 0.8em 1.2em; border-radius: 4px; }
+  .toc a { color: #003366; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  ul.compact li { margin: 0.15em 0; }
+  .header-meta { color: #555; font-size: 0.92em; }
+  .footnote { font-size: 0.85em; color: #555; margin-top: 2em; border-top: 1px dashed #ccc; padding-top: 0.6em; }
+  .arrow { color: #b30000; font-weight: 700; }
+  .spotlight { background: #ffe5e5; border: 1px solid #b30000; border-radius: 4px; padding: 0.8em 1.2em; margin: 1em 0; }
+  .disclaimer { background: #f4f4f4; border-left: 4px solid #888; padding: 0.7em 1em; margin: 1em 0; font-size: 0.92em; color: #333; }
+  .disclaimer p { margin: 0.5em 0; }
+  .anon { background: #eef6ee; border-left: 4px solid #4a7a4a; padding: 0.7em 1em; margin: 1em 0; font-size: 0.92em; color: #234; }
+</style>
+</head>
+<body>
+
+<h1>Audit Report — Anonymized Case Study</h1>
+<p>This audit was conducted using <a href="https://www.natural-joints.com/">natural-joints</a> — independent code &amp; data audits of published research papers.</p>
+<p class="paper-title">Anonymized: a 2025 study reporting spatial multi-omics signatures that predict checkpoint-immunotherapy outcomes in a solid tumour.</p>
+
+<div class="anon">
+<strong>Anonymization note.</strong> Identifying details have been removed: authors, journal, DOI/PMID/accession IDs, the code-repository and data-deposit locations, the specific institutions and cohort names, the tumour type, drug brand names, exact file paths, and patient identifiers. Cohorts are de-identified as <strong>Discovery (A)</strong> (the training cohort), <strong>Validation&#8209;B</strong>, and <strong>Validation&#8209;C</strong>. The two checkpoint agents are <strong>ICI&#8209;A</strong> (a first-line anti&#8209;PD&#8209;1 monotherapy) and <strong>ICI&#8209;B</strong> (a second anti&#8209;PD&#8209;1 agent). Column names, numeric values, and code constructs are otherwise reproduced faithfully so the technical findings remain checkable in principle. This version is a methodology case study; it names no paper, person, or institution.
+</div>
+
+<p class="header-meta">
+<strong>Paper:</strong> identifiers withheld for anonymization — a 2025 spatial multi-omics immunotherapy-signature study in a high-impact genetics journal.<br>
+<strong>Code &amp; data:</strong> a public code repository plus a public data deposit (locations withheld).<br>
+<strong>Audit date:</strong> 2026-06-01.
+</p>
+
+<div class="disclaimer">
+<p><strong>Scope.</strong> This report describes technical observations about the public materials associated with the study — the manuscript text, the released code repository, and the deposited data files. It does not evaluate restricted clinical data the authors may hold privately, the underlying patient records, or any laboratory practice. Where the released code, the deposited data, and the manuscript text are inconsistent with each other, the inconsistency is described.</p>
+
+<p><strong>What this report is not.</strong> No allegation of scientific misconduct, fraud, fabrication, intentional misrepresentation, or professional negligence is made or implied. Coding errors, missing files, and data-formatting inconsistencies are common in research code; the patterns described here (e.g., the <code>Surv(as.numeric(time, event))</code> typo) have appeared in many widely-used codebases without any implication of bad intent. The report is an opinion-based technical commentary on public artifacts, in the tradition of post-publication peer review.</p>
+
+<p><strong>Possible reconciliations.</strong> Some findings might be resolvable by private data, scripts, or analyses not included in the public deposit. Where that is plausible, the report flags it. The findings stand only against what is publicly available; the underlying scientific question of whether the signatures predict outcomes in this indication is independent of the artifact-level discrepancies described here and may be resolved by future work.</p>
+
+<p><strong>Reproducibility.</strong> Every observation in this report is reproducible from the public data deposit + the public code repository + the manuscript text. No access to restricted clinical data was used at any point.</p>
+
+<p><strong>Right of reply.</strong> The authors and their institutions are invited to respond. Corrections, clarifications, additional context, or pointers to private materials that resolve any of the observations will be incorporated and credited. Contact via <a href="https://www.natural-joints.com/">www.natural-joints.com</a>.</p>
+</div>
+
+<div class="keytakeaway">
+<strong>Headline finding.</strong> A high-impact study claims to predict 2-year PFS in solid-tumour immunotherapy. The training-cohort data says "2 years" is actually 1.45 years.
+
+<br><br>
+
+<strong>Paper claims affected:</strong>
+<ul style="margin: 0.4em 0;">
+<li><strong>Discovery HRs</strong> (tumour 3.8, p=0.004; stroma 0.4, p=0.019) → <strong>collapse to non-significance</strong> under correction of a one-character R typo that drops the censoring vector (HR 2.2, p=0.11 and HR 0.30, p=0.057)</li>
+<li><strong>Validation-B HRs</strong> (tumour p=0.05, stroma p=0.036, both 1-sided) → <strong>both p-values exceed 0.05</strong> when correctly two-sided (0.10 and 0.072); both 95% CIs cross 1</li>
+<li><strong>Discovery cell-to-gene HR=5.1, p=0.002</strong> → <strong>not reproducible end-to-end</strong>; depends on coefficient files missing from the deposit and on circular gene selection (signature picked by held-out test HR)</li>
+<li><strong>Validation-B cell-to-gene HR=0.38</strong> → the released validation script <strong>emits HR=1.1, p=0.6</strong> instead</li>
+<li><strong>Validation-C HRs (resistance 1.7, response 0.56)</strong> → <strong>unverifiable</strong>; zero code, zero data in the repo</li>
+<li><strong>"Predicts PFS at 2 years"</strong> (the immunotherapy field's durable-benefit milestone) → the Discovery tumour "2 years" is 1.45 real years, so the signature is predicting 17-month PFS, an endpoint that doesn't appear in the clinical literature</li>
+<li><strong>"Signatures identify subgroups outperforming standard-of-care monotherapy"</strong> → 37%-stretched time axis on every Discovery tumour figure; apparent outperformance of the ~10-month benchmark collapses to <strong>matching it</strong></li>
+</ul>
+</div>
+
+<div class="toc">
+<strong>Contents</strong>
+<ul class="compact">
+<li><a href="#spotlight">The spotlight bug: <code>PFS_2Years_months</code> isn't months</a></li>
+<li><a href="#headline">Net impact on the abstract HRs</a></li>
+<li><a href="#code-bugs">Bugs in the committed code</a></li>
+<li><a href="#data-bugs">Bugs in the deposited data</a></li>
+<li><a href="#stat-bugs">Choices that overstate the significance</a></li>
+<li><a href="#repro">Reproducibility gaps</a></li>
+<li><a href="#minor">Minor and dead-code findings</a></li>
+</ul>
+</div>
+
+<h2 id="spotlight">The spotlight bug: <code>PFS_2Years_months</code> isn't months</h2>
+
+<p>The study deposits a Discovery-cohort tumour CSV with two columns describing time-to-progression: <code>PFS_Days</code> (days from treatment to progression) and <code>PFS_2Years_months</code> (the same time in months, capped at 24).</p>
+
+<p>Compute the implied days-per-month in the file:</p>
+
+<pre><code>mean(PFS_Days / PFS_2Years_months) = 22.11</code></pre>
+
+<p>A real month is 30.44 days (365.25 ÷ 12). The column labeled "months" doesn't hold months — it holds <code>days/22.11</code>. The "2-year cap" at 24 fires at 24 × 22.11 = 530.6 real days = <strong>17.4 real months ≈ 1.45 years</strong>.</p>
+
+<p>The paired stroma file uses the standard 30.44 divisor. Same patients, identical <code>PFS_Days</code> across both files; only the Discovery tumour file's <code>_months</code> column appears to use a non-standard divisor. The Methods section says twice: <em>"PFS data (time in months and an event indicator)."</em> In the Discovery tumour file, the <code>_months</code> column does not match that description.</p>
+
+<h3>The finding's impact</h3>
+
+<p>The paper's scientific contribution rests on one claim: the responder signature picks out patient subgroups that outperform standard-of-care immunotherapy — i.e., do better than the ~10-month median PFS of first-line anti-PD-1 monotherapy in this indication.</p>
+
+<p>The bug stretches every Discovery tumour survival time by 37%. Any responder-subgroup median that reads as 12–14 months on the figure is really 8.7–10.2 real months — <strong>at or below the standard-of-care benchmark, not above it</strong>.</p>
+
+<div class="spotlight">
+What looked like <em>"the signature identifies durable responders who outperform standard care"</em> becomes <em>"the signature identifies patients who do what monotherapy patients already do."</em> A subgroup that just matches standard of care is not a clinical contribution.
+</div>
+
+<p>The Cox HR itself doesn't move (scale-invariant) — the signature still <em>ranks</em> patients. The clinical narrative — <em>"we identify subgroups that beat standard care"</em> — collapses to <em>"we identify subgroups that match it."</em></p>
+
+<p>And the headline endpoint itself is mislabeled: the paper claims <em>"PFS at 2 years,"</em> the immunotherapy field's durable-benefit milestone. The Discovery tumour "2 years" is 1.45 real years. So the signature isn't predicting 2-year PFS at all — it's predicting 17-month PFS, an endpoint that doesn't appear in the clinical literature.</p>
+
+<p>Downstream effects on the Discovery tumour analyses:</p>
+<ul>
+<li><code>PFS_2Years_Index</code> — the binary "event by 2 years" flag — is thresholded from this corrupted column. Patients with real events in days 531–730 (between 17.4 and 24 real months) are at risk of being labeled "no event by 2 years" despite progressing before 2 real years.</li>
+<li>LASSO feature selection is trained against this potentially-mislabeled outcome.</li>
+<li>Reported Discovery tumour Cox HRs use <code>Surv(_months, _Index)</code>.</li>
+<li>Every Discovery tumour Kaplan-Meier figure plots survival on an x-axis labeled "PFS-2Year (months)" — on the 37%-stretched timescale.</li>
+<li>The "5-year PFS" landmark in this file is 60 × 22.11 days = 3.6 real years, not 5.</li>
+</ul>
+
+<h2 id="headline">Net impact on the abstract HRs</h2>
+
+<p>The paper's abstract names 8 hazard ratios across 3 cohorts (Discovery, Validation-B, Validation-C), in both cell-type and cell-to-gene flavors. Correcting the bugs below gives:</p>
+
+<table>
+<thead><tr><th>Claim</th><th>Reported (paper)</th><th>Corrected / actually-released-code value</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>Discovery tumour resistance signature</td><td>HR=3.8, p=0.004</td><td><strong>HR=2.2, p=0.11</strong> (correct Surv + same sign constraint, paper recipe)</td><td><span class="arrow">significance lost</span></td></tr>
+<tr><td>Discovery stroma response signature</td><td>HR=0.4, p=0.019</td><td>HR≈0.30, p≈0.057 (same recipe, correct Surv)</td><td><span class="arrow">significance lost</span></td></tr>
+<tr><td>Validation-B tumour</td><td>HR=1.8, p=0.05 (1-sided)</td><td><strong>p=0.10 two-sided</strong>; 95% CI 0.87–3.7 crosses 1</td><td><span class="arrow">significance lost</span></td></tr>
+<tr><td>Validation-B stroma</td><td>HR=0.49, p=0.036 (1-sided)</td><td><strong>p=0.072 two-sided</strong>; 95% CI 0.23–1.1 crosses 1</td><td><span class="arrow">significance lost</span></td></tr>
+<tr><td>Discovery cell-to-gene resistance</td><td>HR=5.1, p=0.002</td><td>orphan coefficient file + selection on test HR; not reproducible end-to-end</td><td><span class="arrow">unreproducible + circular</span></td></tr>
+<tr><td>Validation-B cell-to-gene response</td><td>HR=0.38</td><td><strong>HR=1.1, p=0.6</strong> per the stroma-RNA validation script</td><td><span class="arrow">contradicts paper</span></td></tr>
+<tr><td>Validation-C HRs (1.7, 0.56)</td><td>abstract</td><td>no code, no data for Validation-C in the released repo</td><td><span class="arrow">unverifiable</span></td></tr>
+</tbody>
+</table>
+
+<p><strong>The paper's central narrative — that two complementary spatial signatures predict immunotherapy outcome across three independent cohorts — is not reproducible end-to-end from the released artifact alone.</strong> Private data or additional analyses not in the public deposit may reconcile some of the observations; this report describes only what is reproducible from the public materials.</p>
+
+<h2 id="code-bugs">Bugs in the committed code</h2>
+
+<h3><code>Surv(as.numeric(time, event))</code> typo at 11+ sites <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p><code>as.numeric()</code> silently drops extra positional arguments, so the event vector is discarded before <code>Surv()</code> ever sees it; <code>Surv(time)</code> with one argument defaults to "all events observed."</p>
+
+<pre><code>library(survival)
+t &lt;- c(10, 20, 30, 40, 50)
+e &lt;- c(1,  0,  1,  0,  1)
+Surv(as.numeric(t, e))   # 10  20  30  40  50      &lt;-- all events observed
+Surv(t, e)               # 10  20+ 30  40+ 50      &lt;-- 20 and 40 censored</code></pre>
+
+<p>The typo appears in the tumour and stroma cell-fraction LASSO scripts plus 11 sites across the RNA-LASSO scripts. <strong>This single bug collapses both Discovery headline HRs:</strong> Discovery tumour resistance HR 3.8 (p=0.004) → 2.58 (p=0.053); Discovery stroma response HR 0.4 (p=0.019) → 0.30 (p=0.057). Both 95% CIs cross 1.</p>
+
+<h3>BH/FDR correction commented out across all 4 RNA-LASSO scripts <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>In the RNA train/test scripts:</p>
+
+<pre><code>#FDR &lt;- p.adjust(response$table$PValue, method="BH")
+FDR &lt;- response$table$PValue
+...
+dex_sel_genes = dex_df[which(dex_df$FDR &lt; 0.05),] # take only genes that have FDR &lt; 0.1</code></pre>
+
+<p>The variable named <code>FDR</code> holds the raw edgeR <code>exactTest</code> p-value. The trailing comment also doesn't match the literal threshold. With 6,000–10,000 genes per split gated on raw p &lt; 0.05, <strong>~5% of the genome enters LASSO on chance alone</strong> — ~500× more false positives than the paper's "FDR &lt; 0.05" claim implies.</p>
+
+<h3>Orphan coefficient files <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>The final-signature RNA script writes <code>final_coeffs_PFS_5Years_3celltypes_CW_resistance.csv</code> at one line and reads <code>final_coeffs_PFS_5Years_3celltypes_resistance_0p1.csv</code> (a different filename) a few lines later. A repository-wide search returns zero matches for the read filename. The same pattern affects the training-cohort definition file and every held-out-HR (<code>hzrs_*.csv</code>) file. <strong>The released code cannot regenerate the published cell-to-gene HRs end-to-end.</strong></p>
+
+<h3>Cell-typing per-cell z-score destroys marker discrimination <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>In the cell-typing notebook, each expression matrix is z-scored per cell across markers (<code>axis=1</code>), then hardcoded M1 vs M2 gates are applied on those z-scored values at boundary 0.3. Per-cell z-scoring forces every cell to mean-0/SD-1 across its panel — a CD8 cell with high CD8 looks identical to a tumour cell with high pan-CK because both peak in one channel of their normalized panel. Affects all cell labels → cell-fraction features → headline HRs.</p>
+
+<h3>Cell-typing <code>ffill</code> priority mislabels Tregs as <code>Proliferating_Tumour</code> <span class="sev sev-MODERATE">MODERATE</span></h3>
+
+<p>The cell-label priority chain: <code>ki67cell &gt; mac_types &gt; gzmbcell &gt; pd1cell &gt; foxp3cell &gt; CD4_types &gt; CT_1</code>. A Ki67+ FOXP3+ CD4 cell (a proliferating Treg) gets labeled <code>Proliferating_Tumour</code> — the lead cell type in the resistance signature. Un-subtyped macrophages default to <code>M1_mac</code>, biasing the M1/M2 ratio toward M1.</p>
+
+<h3>Multi-image patient replicates fed to <code>coxph</code> without <code>cluster(Patient_ID)</code> <span class="sev sev-MODERATE">MODERATE</span></h3>
+
+<p>Discovery: 3 patients with 2 images each. Validation-B: 7 patients with 2–3 images each. Replicate cores per patient are fed to <code>coxph</code> as if they were independent observations. Standard errors are too narrow; p-values are too small by ≈10–15%.</p>
+
+<h3>Tumour LASSO drops <code>Unidentified</code> + <code>Stroma</code> cell-type columns <span class="sev sev-MODERATE">MODERATE</span></h3>
+
+<p>The slice <code>cellFrac[,c(38:51)]</code> selects 14 cell-type columns but skips <code>Unidentified</code> and <code>Stroma</code>. Row-sums range 0.37–1.0 instead of summing to 1.0. Un-normalized cell-fractions are fed to unstandardized LASSO, biasing feature selection toward features that correlate with how much "non-included" tissue each patient has.</p>
+
+<h3>CD8 lineage triple-counted in LASSO <span class="sev sev-MODERATE">MODERATE</span></h3>
+
+<p><code>CD8_cells</code>, <code>Exhausted CD8</code>, and <code>Cytotoxic CD8</code> all enter the LASSO design matrix as separate features. Numerically, <code>CD8_cells</code> ≠ <code>Exhausted CD8 + Cytotoxic CD8</code> (max difference 0.23). The same cells are partially counted across three columns and contribute three independent feature slots, destabilizing selection.</p>
+
+<h3>Hardcoded integer column indices in marker-correlation loop <span class="sev sev-MODERATE">MODERATE</span></h3>
+
+<p>The protein/UMAP script uses <code>expr[,21], expr[,25], expr[,43]</code> for "pdl1", "cd163", "pck" in a correlation loop. A safer pattern (<code>which(colnames(expr) == "PD-L1")</code>) exists in the same file but isn't used here. Any reordering of <code>data.X</code> upstream silently swaps which markers are correlated.</p>
+
+<h2 id="data-bugs">Bugs in the deposited data</h2>
+
+<h3><code>PFS_2Years_months</code> = <code>days/22.11</code> in Discovery tumour file <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>Covered in the spotlight section above. The Discovery tumour file's months column is on a 22.11-day-per-unit scale; the paired stroma file is correct at 30.44. 37% time-axis stretch on every Discovery tumour figure; "2-year" landmark = 1.45 real years; potential mislabeling of <code>PFS_2Years_Index</code> for patients with events in days 531–730.</p>
+
+<h3><code>Censored</code> ≡ <code>Status</code> ≡ <code>Current Status</code> ≡ OS <span class="sev sev-MODERATE">MODERATE</span></h3>
+
+<p>All three columns are 100% collinear with overall survival in the deposited CSVs:</p>
+<ul class="compact">
+<li>Alive ↔ Censored ↔ Status = 0</li>
+<li>Deceased ↔ Uncensored ↔ Status = 1</li>
+</ul>
+<p>There is no PFS-specific censoring information in these three columns. PFS censoring exists only in the <code>PFS_*Index</code> columns. Any script that pulls a censoring vector from <code>Status</code> silently substitutes OS for PFS.</p>
+
+<h3>Discovery cohort is n=29–31 unique patients, not n=41 <span class="sev sev-MODERATE">MODERATE</span></h3>
+
+<p>The cell-fraction CSVs contain 32–33 images. After de-duplicating on <code>Patient_ID</code>, the unique-patient count is 29–31 (3 patients are double-imaged). The abstract claims n=41. The (HR, p) values aren't affected — they're computed on n=32 images — but the sample-size claim is materially overstated.</p>
+
+<h3>Same patient has different drug across paired files <span class="sev sev-MINOR">MINOR</span></h3>
+
+<p>One patient's core: <code>ImmunoTx = ICI-B</code> in the stroma file, <code>= ICI-A</code> in the tumour file. Same patient, same image, two files, two drugs.</p>
+
+<h3>Same patient has different histology across paired files <span class="sev sev-MINOR">MINOR</span></h3>
+
+<p>Three of one patient's images: <code>Histology.1 = Adenocarcinoma</code> in the stroma file, <code>= Adenosquamous</code> in the tumour file. Same images, two histology labels.</p>
+
+<h3><code>line_at_ITX</code> categorical encoding split by TMA <span class="sev sev-MODERATE">MODERATE</span></h3>
+
+<p>One TMA batch uses integer <code>"1"</code> for first-line therapy. The other batch uses string <code>"1st line"</code>. <code>Biopsy_at_ITX</code> is missing for the entire second batch, making it a perfect cohort indicator masquerading as a biology variable.</p>
+
+<h3>Patient vital-status flips across duplicate cores <span class="sev sev-MINOR">MINOR</span></h3>
+
+<p>One patient is coded simultaneously Deceased and Alive across duplicate cores at the same <code>OS_Days=137</code>. A second patient has the same flip. A third patient has <code>Response</code> flipping between Responder and Non-responder across 3 cores. These affect ≤2 patients in a 29-patient Discovery cohort but reveal cores were not de-duplicated before label assignment.</p>
+
+<h3>Cross-file row-count and ID drift <span class="sev sev-MINOR">MINOR</span></h3>
+
+<p>The tumour file has 67 rows; the stroma file has 68. Five image IDs are unique to one or the other. The Validation-B CK vs stroma cohorts overlap on only 21 of 30/27 patient IDs. <code>PFS_5Years_months</code> disagrees at the second decimal across shared rows (1.80 vs 1.84). Cross-cohort exact-match joins fail silently.</p>
+
+<h3>Inconsistent free-text histology labels <span class="sev sev-MINOR">MINOR</span></h3>
+
+<p>The <code>Histology</code> column contains <code>Squamous</code> vs <code>squamous cell carcinoma</code> vs <code>Squamous cell carcinoma</code>, plus one label with an embedded newline (<code>\n</code>) in the middle. Any filter or grouping on this column produces inconsistent cohorts depending on which spelling is matched.</p>
+
+<h2 id="stat-bugs">Choices that overstate the significance</h2>
+
+<h3>Cell-to-gene signatures selected by held-out test-cohort HR <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>In the final-signature RNA script:</p>
+
+<pre><code>hzrs = read.csv("hzrs_..._resistance_..._genes.csv")
+good_models = which((hzrs$x) &gt;= 1.5)         # resistance direction
+# mirror in stroma response script:
+good_models = which((hzrs$x) &lt;= 0.7)         # response direction</code></pre>
+
+<p><code>hzrs$x</code> is the held-out test-cohort HR from 50 random 80/20 splits. The final signature is built by running gene voting only over splits whose test HR was already in the desired direction. <strong>The validation result is the model-selection criterion</strong> — a circular validation pattern. Genes appearing across these "good" splits are then assembled and re-evaluated on the same Discovery cohort.</p>
+
+<h3>Validation-B p-values halved 1-sided post-hoc <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>In 4 validation scripts:</p>
+
+<pre><code>p_value_one_sided &lt;- ifelse(summary(cox)$coefficients[2] &gt; 1,
+                            p_value_two_sided / 2,
+                            1 - p_value_two_sided / 2)</code></pre>
+
+<p>Direction is picked post-hoc from the sign of the observed coefficient. Plots annotate this with <code>"Log-Rank-1-sided"</code> for validation and <code>"Log-Rank-2-sided"</code> for discovery. Both abstract validation p-values become two-sided 0.10 (Validation-B tumour) and 0.072 (Validation-B stroma) — neither below conventional significance, both 95% CIs cross 1.</p>
+
+<h3>Tumour and stroma analyses share 28+ patients — not 8 independent tests <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>Discovery tumour (29 patients) ∩ Discovery stroma (31 patients) = 28 in common. Validation-B tumour (26) ∩ Validation-B stroma (26) = 26 (full overlap). The 4 cell-type HRs + 4 cell-to-gene HRs the abstract presents as "8 consistent results" are not 8 independent tests — most are recomputations on substantially the same patients with different feature transformations. <strong>Bonferroni at family size 8 (α=0.0062) drops every reported p-value except Discovery tumour (0.004) and Discovery cell-to-gene resistance (0.002) below significance</strong> — and both survivors are in-sample LASSO refits.</p>
+
+<h3><code>lower.limits=0</code> / <code>upper.limits=0</code> forces directional signatures <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>The LASSO sign constraint <code>lower.limits = 0</code> (tumour) and <code>upper.limits = 0</code> (stroma) <em>guarantees</em> the resulting signature is non-negative ("resistance") or non-positive ("response") — direction is set by a keyword, not by the data. Post-LASSO refit then silently drops coefficients via <code>coeffs = coeffs[which(coeffs &gt;= 2)]</code> (HR ≥ 7.4 per unit fraction), a hardcoded filter with no rationale. With correct Surv + sign constraint, the Discovery tumour signature gives HR=2.18, p=0.105. Without sign constraint, no cell type meets the stability threshold.</p>
+
+<h3>Cohort-comparability gap: Discovery = 1st-line pre-Tx ICI-A; Validation-B = post-1st-line ICI-B <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>Discovery training: all <code>Biopsy_at_ITX = "Pre"</code>, all <code>line_at_ITX = "1"</code>, 28/32 on ICI-A. Validation-B: <code>Biopsy_at_ITX = #N/A</code> for 35/35, 27/35 on ICI-B, 23/35 ≥ 2nd line. Pre-treatment vs post-treatment biopsies are biologically different — clonal selection under immunotherapy. Commented-out filters in the LASSO scripts (<code>Histology %in% c("Squamous")</code>, <code>ImmunoTx %in% c("ICI-B")</code>) indicate that these variables were considered during script development as candidate filters.</p>
+
+<h3>No clinical covariate adjustment <span class="sev sev-MODERATE">MODERATE</span></h3>
+
+<p>Final reported HRs are univariate Cox — no age, smoking, histology, line of therapy, drug, or biopsy timing. Standard practice in immunotherapy biomarker studies includes at least line and drug as covariates.</p>
+
+<h3>LASSO fit on PFS_5Years, headline HR reported on PFS_2Years <span class="sev sev-MODERATE">MODERATE</span></h3>
+
+<p>Same script. The cell-to-gene pipeline also fits gene selection on PFS_5Years but reports a training HR on OS_5Years — three different endpoints appear in one script. The released materials do not specify which endpoint was pre-registered as the primary.</p>
+
+<h3>Data-dependent tertile cutpoint computed on test cohort <span class="sev sev-MINOR">MINOR</span></h3>
+
+<p>The "tertile" cutpoint for binarizing the signature score is computed from the test cohort's own score distribution — a mild form of test-set leakage where the dichotomization boundary depends on the test data.</p>
+
+<h3>Inconsistent LASSO stability thresholds <span class="sev sev-MINOR">MINOR</span></h3>
+
+<p>Tumour LASSO: 100 random seeds, 50% stability threshold for retaining a feature. Stroma LASSO: 50 seeds, 30% threshold. Different stringency for the two compartments; the manuscript does not give a rationale for the different choices.</p>
+
+<h2 id="repro">Reproducibility gaps</h2>
+
+<h3>Validation-C cohort entirely absent from the repo <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>A repository-wide search for any Validation-C identifier returns zero matches in any analysis script. The abstract's Validation-C HRs (resistance HR=1.7, response HR=0.56, n=79) are not reproducible from the public artifact. The third "independent" cohort exists only in manuscript text.</p>
+
+<h3>Validation-B stroma RNA released code emits HR=1.1, p=0.6 — abstract claims HR=0.38 <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<p>The stroma-RNA validation script contains the literal label:</p>
+
+<pre><code>label = "HR = 1.1 (0.43-3) \n p = 0.6 (Log-Rank-1-sided) \n cutpoint = tertile"</code></pre>
+
+<p>The script uses <code>Surv(OS_5Years_months, OS_5Years_index)</code> on the Validation-B stroma CSV. Output: HR=1.1, p=0.6. The abstract reports HR=0.38 for the same comparison. The released code does not reproduce the abstract's Validation-B stroma response HR. (A two-sided p of 0.6 is symmetric — this is not a sidedness artifact, the script computes HR=1.1.)</p>
+
+<h3>Three deposit files referenced by released code don't exist <span class="sev sev-MAJOR">MAJOR</span></h3>
+
+<ul class="compact">
+<li>the training-cohort definition file — defines the Discovery training cohort</li>
+<li><code>final_coeffs_PFS_5Years_3celltypes_*_resistance_0p1.csv</code> — read by signature scripts (different filename than what gets written)</li>
+<li>the held-out-HR files (<code>hzrs_*.csv</code>) — held-out test-cohort HRs from 50 train/test splits</li>
+</ul>
+
+<p>The published cell-to-gene HR=5.1 cannot be regenerated from the artifacts the paper points readers to.</p>
+
+<h2 id="minor">Minor and dead-code findings</h2>
+
+<table>
+<thead><tr><th>Finding</th><th>Severity</th></tr></thead>
+<tbody>
+<tr><td>Off-by-one in <code>nGene = dim(train_data3)[2] - 1</code> drops the last gene from every LASSO fit. The <code>-1</code> was for a response column that's no longer appended.</td><td><span class="sev sev-MINOR">MINOR</span></td></tr>
+<tr><td>Final-gene threshold tweaked in a dead-code chain (0.5 → 0.05 → 0.2; only the last value runs).</td><td><span class="sev sev-MINOR">MINOR</span></td></tr>
+<tr><td><code>resps = CK$PFS_2Years_index</code> in validate scripts references a column that doesn't exist in the Validation-B CK CSV — silent NULL. Variable is never used; dead code, but reveals scripts weren't re-run end-to-end against final shipped CSVs.</td><td><span class="sev sev-MINOR">MINOR</span></td></tr>
+</tbody>
+</table>
+
+<p class="footnote">
+<strong>Verification.</strong> Every observation in this report was independently checked by re-running the published code against the deposited data, by comparing the manuscript text against the script source, or by structural proof from the values in the code and data. No access to restricted clinical data was used. Everything described here is reproducible from the public data deposit + the public code repository + the manuscript text. All 36 observations beyond the originally-published <code>Surv</code> typo are, to the best of the auditor's knowledge as of 2026-06-02, not previously reported in public venues (no repository issues, no pull requests, no post-publication-review entries, no journal erratum, no retraction notices on this study at audit time).
+
+<br><br>
+
+<strong>No misconduct alleged.</strong> This report is opinion-based technical commentary on public artifacts. It does not allege scientific misconduct, fraud, fabrication, intentional misrepresentation, or professional negligence by the authors, their institutions, or any associated person. Coding bugs, missing files, formatting inconsistencies, and unstated analysis choices are common in research code and are described here as such, without imputing motive or character.
+
+<br><br>
+
+<strong>Anonymization.</strong> This is a de-identified case study. The paper, its authors, their institutions, the journal, the tumour type, and all repository/deposit locations have been withheld; cohorts and drugs are relabeled generically. It is published as a methodology example only.
+</p>
+
+</body>
+</html>
